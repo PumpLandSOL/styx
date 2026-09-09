@@ -152,6 +152,7 @@ footer{text-align:center;color:var(--mut);font-style:italic;font-size:14px;paddi
 .toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(16px);z-index:90;background:var(--gold);color:#0a0807;font-family:'Cinzel';font-weight:600;letter-spacing:.04em;font-size:14px;padding:12px 20px;border-radius:2px;opacity:0;transition:.22s;pointer-events:none}
 .toast.on{opacity:1;transform:translateX(-50%) translateY(0)}.toast.err{background:var(--ox);color:#fff}
 @media(max-width:780px){.bal{grid-template-columns:1fr 1fr}.read{grid-template-columns:1fr 1fr 1fr}.how{grid-template-columns:1fr}.tag{display:none}}
+.faq{max-width:860px;margin:0 auto}.faq details{border-top:1px solid var(--line2);padding:2px 0}.faq details:last-child{border-bottom:1px solid var(--line2)}.faq summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:20px;font-family:'Cinzel';font-weight:600;font-size:15px;letter-spacing:.06em;color:var(--bone,#e9ddc6);padding:16px 4px}.faq summary::-webkit-details-marker{display:none}.faq summary::after{content:"❖";color:var(--gold);font-size:13px;transition:transform .25s;flex:none}.faq details[open] summary::after{transform:rotate(45deg)}.faq .a{font-family:'EB Garamond',serif;font-size:16.5px;line-height:1.55;color:#c9bda6;padding:0 4px 18px;max-width:64ch}.faq .a b{color:var(--gold);font-weight:600}.faq .a i{color:var(--verd);font-style:normal}
 </style>
 </head>
 <body>
@@ -160,7 +161,7 @@ footer{text-align:center;color:var(--mut);font-style:italic;font-size:14px;paddi
 <header><div class="wrap"><nav class="nav">
   <div class="brand"><div class="mark">Ω</div><b>STYX</b><span class="tag">the coin for the crossing</span></div>
   <div class="right">
-    <a class="ico" id="xbtn" href="https://x.com/styxrh" target="_blank" rel="noopener" title="X">𝕏</a>
+    <a class="ico" id="xbtn" href="https://x.com/StyxRH" target="_blank" rel="noopener" title="X">𝕏</a>
     <button class="btn fill sm" id="connect">Connect</button>
   </div>
 </nav></div></header>
@@ -247,8 +248,22 @@ footer{text-align:center;color:var(--mut);font-style:italic;font-size:14px;paddi
     <div class="step"><div class="n">III</div><h3>Pay across the river</h3><p>Send shielded sUSD and the <b>amount &amp; both parties stay hidden</b> — the ledger keeps only a nullifier and a new commitment. Private digital cash.</p></div>
   </div>
 
+
+  <!-- FAQ -->
+  <div class="sec" id="faq"><span>Questions at the crossing</span></div>
+  <div class="faq">
+    <details open><summary>What is sUSD?</summary><div class="a">A dollar you can carry unseen. sUSD is a <b>fractional-algorithmic stablecoin</b> on Robinhood Chain: every unit is struck from USDG collateral plus a burned share of <b>$STYX</b>, and the protocol shifts that ratio to hold the peg at $1.</div></details>
+    <details><summary>How does the peg hold?</summary><div class="a">Below $1 the collateral ratio rises, so more USDG backs each new sUSD and redemption pays out more hard collateral. Above $1 the ratio falls and more of each mint is the algorithmic share. Redemption is always open, so arbitrage pulls the price back toward the peg. <i>It is defended, not guaranteed.</i></div></details>
+    <details><summary>What does “shield” actually do?</summary><div class="a">It moves public sUSD into the shielded pool and writes a <b>note encrypted only to you</b> (x25519), a <b>commitment</b> into the Merkle tree, and nothing else. Your balance reads <span class="redact">████</span> to everyone but you.</div></details>
+    <details><summary>What can an observer see when I send unseen?</summary><div class="a">A <b>nullifier</b> spent and a <b>new commitment</b> added. No amount, no sender, no recipient. The recipient decrypts their note with their key; nobody else can.</div></details>
+    <details><summary>Can I get back to public sUSD?</summary><div class="a">Yes. Unshield returns a private note to your public balance at any time, and Redeem burns public sUSD for your USDG collateral plus the $STYX share. <i>Private when you choose, public when you choose.</i></div></details>
+    <details><summary>What is $STYX for?</summary><div class="a">$STYX is the share token of the protocol. A small amount is <b>burned on every mint</b> and minted back on every redeem, so demand for sUSD flows into $STYX. It is also the governance token for the rites ahead.</div></details>
+    <details><summary>Which chain and which wallet?</summary><div class="a"><b>Robinhood Chain</b> (chainId 4663). Connect any EVM wallet such as MetaMask or Rabby; the site switches the network for you. USDG is the collateral asset.</div></details>
+    <details><summary>Is this safe?</summary><div class="a">Algorithmic stablecoins carry <b>real risk</b>: a peg is a mechanism, not a promise, and history has UST and Terra in it. Shielded notes are encrypted to your keys alone, so losing your keys loses the notes. Size accordingly.</div></details>
+  </div>
+
   <div class="ca" id="cabar" style="display:none"><span class="t">$STYX CA</span><code id="ca-mint"></code><button id="ca-copy">Copy</button></div>
-  <div class="disc"><div class="h">⚠ Disclosure · read me</div><b>This is Rite I.</b> The peg, collateral and ledger are <b>kept off-chain in Rite I</b>; the privacy primitives are real but the trustless ZK validity proof <b>arrives with Rite IV</b> (audited zk-SNARKs come at mainnet). <b>Algorithmic stablecoins are extremely high-risk</b> — most have de-pegged (see UST/Terra). Nothing here holds real value or is financial advice.</div>
+  <div class="disc"><div class="h">⚠ Disclosure · read me</div><b>sUSD is a fractional-algorithmic stablecoin.</b> The peg is defended by the collateral ratio and open redemption, not guaranteed; algorithmic stablecoins carry real risk (see UST/Terra). Shielded notes are encrypted to your keys alone. Nothing here is financial advice.</div>
 </main>
 
 <footer><div class="wrap">STYX · sUSD / $STYX · a private fractional-algorithmic stablecoin · Robinhood Chain · the coin you carry unseen</div></footer>
