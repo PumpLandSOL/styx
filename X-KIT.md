@@ -1,6 +1,6 @@
 # STYX — X (Twitter) Kit
 
-**Handle:** @StyxOnRH · **URL:** x.com/StyxOnRH · **Site:** styxrh.xyz
+**Handle:** @styxrh · **URL:** x.com/styxrh · **Site:** styxrh.xyz
 **Palette:** antique gold `#c9a25e` · verdigris `#62a187` · black stone `#080706`
 **Type:** Cinzel (display) · EB Garamond (body) · JetBrains Mono (data)
 
