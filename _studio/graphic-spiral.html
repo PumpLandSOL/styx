@@ -1,0 +1,60 @@
+<!doctype html><html><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=EB+Garamond:ital@0;1&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#080706;--stone:#100c09;--stone2:#181109;--ink:#e9ddc6;--dim:#a58f6a;--mut:#6a5942;--gold:#c9a25e;--gold2:#e9cf95;--verd:#62a187;--red:#d8503a;--dead:#6a5f50;--line:rgba(201,162,94,.18);--line2:rgba(201,162,94,.34)}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{font-family:'EB Garamond',serif;color:var(--ink);background:#080706;overflow:hidden}
+.ci{font-family:'Cinzel',serif}.mo{font-family:'JetBrains Mono',monospace}
+.stage{position:relative;width:2400px;height:1350px;overflow:hidden;background:radial-gradient(120% 80% at 50% -8%,rgba(201,162,94,.07),transparent 55%),radial-gradient(80% 60% at 18% 118%,rgba(216,80,58,.06),transparent 60%),radial-gradient(80% 60% at 82% 118%,rgba(98,161,135,.07),transparent 60%),#080706}
+.grain{position:absolute;inset:0;opacity:.05;background-image:radial-gradient(rgba(233,221,198,.5) .5px,transparent .6px);background-size:3px 3px}
+.wrap{position:absolute;inset:0;padding:100px 150px}
+.eye{font-size:30px;letter-spacing:.34em;color:var(--gold);text-transform:uppercase;text-align:center}
+.title{font-size:92px;font-weight:800;text-align:center;margin:22px 0 10px}
+.title em{font-style:normal;color:var(--gold)}
+.sub{font-size:34px;font-style:italic;color:var(--dim);text-align:center;margin-bottom:54px}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:60px}
+.card{border:1px solid var(--line2);border-radius:4px;padding:44px 52px;background:linear-gradient(180deg,var(--stone2),var(--stone));position:relative;min-height:720px}
+.card.dead{border-color:rgba(216,80,58,.35)}
+.card .h{font-family:'Cinzel';font-weight:800;font-size:54px;letter-spacing:.04em}
+.card.dead .h{color:var(--dead)}.card.live .h{color:var(--gold)}
+.card .h small{display:block;font-family:'JetBrains Mono';font-weight:400;font-size:22px;letter-spacing:.1em;text-transform:uppercase;margin-top:8px;color:var(--mut)}
+.card.live .h small{color:var(--dim)}
+.loop{margin:40px 0 0;display:flex;flex-direction:column;gap:0}
+.st{display:flex;align-items:center;gap:26px;padding:20px 0;border-top:1px solid var(--line)}
+.st .n{font-family:'Cinzel';font-weight:700;font-size:30px;width:64px;height:64px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex:none}
+.dead .st .n{border:2px solid var(--red);color:var(--red)}.live .st .n{border:2px solid var(--verd);color:var(--verd)}
+.st .t{font-size:34px;line-height:1.25}
+.st .t b{font-weight:600}
+.dead .st .t b{color:var(--red)}.live .st .t b{color:var(--verd)}
+.res{margin-top:34px;padding-top:26px;border-top:2px solid var(--line2);font-family:'Cinzel';font-weight:800;font-size:46px;text-align:center}
+.dead .res{color:var(--red)}.live .res{color:var(--gold2);text-shadow:0 0 26px rgba(201,162,94,.4)}
+.res small{display:block;font-family:'EB Garamond';font-style:italic;font-weight:400;font-size:26px;color:var(--dim);margin-top:8px;text-transform:none;letter-spacing:0}
+.foot{position:absolute;left:0;right:0;bottom:50px;text-align:center;font-family:'JetBrains Mono';font-size:26px;color:var(--mut);letter-spacing:.1em}
+.foot b{color:var(--gold)}
+</style></head>
+<body><div class="stage"><div class="grain"></div><div class="wrap">
+  <div class="eye ci">The mechanism · side by side</div>
+  <div class="title ci">The spiral <em>vs</em> the ratio</div>
+  <div class="sub">LUNA printed its way down. sUSD adds collateral on the way down.</div>
+  <div class="cols">
+    <div class="card dead"><div class="h">$LUNA<small>Terra · 2022 · reflexive mint</small></div>
+      <div class="loop">
+        <div class="st"><div class="n">1</div><div class="t">UST slips below $1</div></div>
+        <div class="st"><div class="n">2</div><div class="t">Protocol <b>mints unlimited LUNA</b> to absorb the redemptions</div></div>
+        <div class="st"><div class="n">3</div><div class="t">LUNA supply explodes, <b>price collapses</b>, backing evaporates</div></div>
+        <div class="st"><div class="n">4</div><div class="t">Less backing → more redemptions → <b>more minting</b></div></div>
+      </div>
+      <div class="res">Death spiral<small>$40B gone in a week · nothing hard underneath</small></div>
+    </div>
+    <div class="card live"><div class="h">sUSD<small>STYX · Robinhood Chain · collateral ratio</small></div>
+      <div class="loop">
+        <div class="st"><div class="n">1</div><div class="t">sUSD slips below $1</div></div>
+        <div class="st"><div class="n">2</div><div class="t">The <b>collateral ratio rises</b> — every new sUSD needs more USDG</div></div>
+        <div class="st"><div class="n">3</div><div class="t">Redemption pays out <b>hard USDG</b> first; arbitrage buys the dip</div></div>
+        <div class="st"><div class="n">4</div><div class="t">$STYX share is <b>capped by the ratio</b> — it cannot be printed to infinity</div></div>
+      </div>
+      <div class="res">Ratio tightens<small>backing rises when it matters · a floor of USDG under every dollar</small></div>
+    </div>
+  </div>
+  <div class="foot"><b>styxrh.xyz</b> · sUSD · $STYX · private money, carried unseen</div>
+</div></div></body></html>
