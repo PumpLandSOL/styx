@@ -1,0 +1,30 @@
+// STYX "how to mint" — ~20s, the real app doing real actions: connect → type → Mint sUSD → Shield → Send unseen → ledger.
+'use strict';
+const path = require('path');
+const { record } = require('./rec.cjs');
+const OVERLAY = require('./overlay.cjs');
+const SITE = process.env.SITE || 'http://localhost:8198';
+const W = '0x7e2a4c6b8d0f1a3c5e7b9d1f3a5c7e9b1d3f5a7c';
+const TYPE = (sel, txt) => `(async()=>{const i=document.querySelector('${sel}');i.focus();i.value='';for(const ch of '${txt}'){i.value+=ch;i.dispatchEvent(new Event('input'));await new Promise(r=>setTimeout(r,90))}})()`;
+record({ site: SITE + '/?w=' + W + '&tab=mint', out: path.join(__dirname, '..', 'brand', 'styx-howto-mint.mp4'), port: 9473, script: async ({ ev, sleep }) => {
+  await ev(OVERLAY, true); await sleep(600);
+  await ev("window.__scrollToSel('#demo',900,.06)", true);
+  await ev("window.__cap('step 1 · connect','Connect any EVM wallet. The site switches you to <b>Robinhood Chain</b>. Your ledger opens with USDG and $STYX.')"); await sleep(2200);
+  await ev("window.__cap('step 2 · strike sUSD','Type how many dollars you want. The panel shows the <b>USDG collateral</b> and the <b>$STYX burned</b>.')");
+  await ev(TYPE('#in', '1000'), true); await sleep(1400);
+  await ev("document.getElementById('act').click()"); await sleep(1800);
+  await ev("window.__cap('minted','1,000 sUSD in your public balance. <b>USDG posted at the live collateral ratio, a small $STYX share burned.</b>')"); await sleep(1800);
+  await ev("document.querySelector('.tabs button[data-tab=shield]').click()"); await sleep(400);
+  await ev("window.__cap('step 3 · shield','Move it into the shielded pool. It becomes a note <b>encrypted only to you.</b>')");
+  await ev(TYPE('#in', '600'), true); await sleep(900);
+  await ev("document.getElementById('act').click()"); await sleep(1600);
+  await ev("document.querySelector('.tabs button[data-tab=send]').click()"); await sleep(400);
+  await ev("window.__cap('step 4 · send unseen','Paste a recipient and an amount. <b>Both parties and the amount stay hidden.</b>')");
+  await ev(TYPE('#to', '0x3f9b1d5a7c2e4f6a8b0c2d4e6f8a0b2c4d6e8f0a'), true);
+  await ev(TYPE('#in', '250'), true); await sleep(700);
+  await ev("document.getElementById('act').click()"); await sleep(1600);
+  await ev("document.getElementById('b-priv-eye').click()"); await sleep(1000);
+  await ev("window.__cap('your ledger','Public 400 · unseen 350. <b>Reveal</b> shows it only to you.')"); await sleep(1800);
+  await ev('window.__capHide()'); await sleep(100);
+  await ev("window.__title('<em>STYX</em>','strike · shield · send unseen · styxrh.xyz','solid')"); await sleep(1500);
+} }).catch((e) => { console.error(e); process.exit(1); });
