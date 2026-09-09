@@ -15,7 +15,8 @@ const PORT = process.env.PORT || 8198;
 const ROOT = path.join(__dirname, '..');
 const DATA_PATH = process.env.DATA_PATH || path.join(ROOT, 'data.json');
 const STABLE = 'sUSD', GOV = 'STYX';
-const STYX_MINT = process.env.STYX_MINT || '';            // $STYX on Robinhood Chain — CA bar lights when set
+const STYX_MINT = process.env.STYX_MINT || '0xdbd2bd1a734d2b3dc8f88bacc404810fcbff36c4';   // $STYX · Robinhood Chain · LIVE
+const TREASURY = (process.env.TREASURY || '0x28FC1899eDD7973dc5A9c95321E0cdeB3d8419d1');            // $STYX on Robinhood Chain — CA bar lights when set
 const TICK_SEC = +(process.env.TICK_SEC || 5);
 const SEED = { usdg: 10000, styx: 500, susd: 0, priv: 0 };
 
@@ -89,7 +90,7 @@ const num = (v, hi) => { let n = +v; if (!isFinite(n) || n <= 0) return 0; retur
 function metrics() {
   const backing = db.collateralUsd / Math.max(1, db.susdSupply);
   return {
-    stable: STABLE, gov: GOV, mint: STYX_MINT, network: 'robinhood', chainId: 4663, explorer: 'https://explorer.mainnet.chain.robinhood.com', styxLive: STYX_LIVE.px ? STYX_LIVE : null, peg: 1.0,
+    stable: STABLE, gov: GOV, mint: STYX_MINT, treasury: TREASURY, network: 'robinhood', chainId: 4663, explorer: 'https://explorer.mainnet.chain.robinhood.com', styxLive: STYX_LIVE.px ? STYX_LIVE : null, peg: 1.0,
     susdPrice: +db.susdPrice.toFixed(4), pegStatus: db.susdPrice >= 1.001 ? 'above' : db.susdPrice <= 0.999 ? 'below' : 'at',
     susdSupply: db.susdSupply, susdMarketCap: db.susdPrice * db.susdSupply,
     cr: db.cr, collateralUsd: db.collateralUsd, backingRatio: backing,
@@ -108,7 +109,7 @@ function body(req) { return new Promise((r) => { let b = ''; req.on('data', (c) 
 
 http.createServer(async (req, res) => {
   const u = req.url.split('?')[0];
-  if (u === '/api/config') return json(res, 200, { stable: STABLE, gov: GOV, mint: STYX_MINT, network: 'robinhood', chainId: 4663, explorer: 'https://explorer.mainnet.chain.robinhood.com', styxLive: STYX_LIVE.px ? STYX_LIVE : null });
+  if (u === '/api/config') return json(res, 200, { stable: STABLE, gov: GOV, mint: STYX_MINT, treasury: TREASURY, network: 'robinhood', chainId: 4663, explorer: 'https://explorer.mainnet.chain.robinhood.com', styxLive: STYX_LIVE.px ? STYX_LIVE : null });
   if (u === '/api/metrics') return json(res, 200, metrics());
   if (req.method === 'POST') {
     const d = await body(req);

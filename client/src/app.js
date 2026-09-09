@@ -46,6 +46,7 @@ function renderMetrics() {
   $('s-sup').textContent = big(M.susdSupply) + ' sUSD';
   $('s-shd').textContent = big(M.shielded.totalValue) + ' sUSD';
   if (M.mint) { $('cabar').style.display = 'flex'; $('ca-mint').textContent = M.mint; }
+  if (M.treasury) { $('trbar').style.display = 'flex'; $('tr-addr').textContent = M.treasury; }
   $('feed').innerHTML = (M.feed.length ? M.feed : []).map((t) => {
     const right = t.type === 'private' ? '<span class="redact">█████</span>'
       : t.publicAmount != null ? fmt(t.publicAmount, 0) + ' sUSD' : '<span class="redact">████</span>';
@@ -114,6 +115,7 @@ async function doAct(url, payload, msg) {
   A = r; renderAccount(); loadMetrics(); toast(msg(r));
 }
 $('ca-copy').onclick = () => { navigator.clipboard.writeText(M.mint); toast('copied'); };
+$('tr-copy').onclick = () => { navigator.clipboard.writeText(M.treasury); toast('copied'); };
 
 // deep-link / capture: ?w=<address> opens a wallet's ledger, &tab=<mint|shield|send|redeem>, &reveal=1
 (function () { const q = new URLSearchParams(location.search);

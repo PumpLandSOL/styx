@@ -78,3 +78,9 @@ Regenerate: `cd styx/_studio && node build.js && node render.js`
 ---
 
 ⚠ Voice/compliance: never market as live / safe / audited. It's a Rite-I (Phase-0) demo — simulated peg & ledger, real privacy primitives, ZK proof simulated. Algorithmic stablecoins are high-risk (UST/Terra).
+
+## CA (Robinhood Chain)
+0xdbd2bd1a734d2b3dc8f88bacc404810fcbff36c4
+
+## Treasury
+0x28FC1899eDD7973dc5A9c95321E0cdeB3d8419d1
