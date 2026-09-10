@@ -1,0 +1,138 @@
+<!doctype html><html><head><meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=EB+Garamond:ital@0;1&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>html,body{margin:0;background:#080706;overflow:hidden}canvas{display:block}</style>
+</head><body><canvas id="c" width="1280" height="720"></canvas>
+<script>
+// HOW TO CROSS — 15s hands-on walkthrough. A drawn replica of the STYX tablet with a live cursor, typing and responses.
+const W = 1280, H = 720, cv = document.getElementById('c'), g = cv.getContext('2d');
+const GOLD = '#c9a25e', GOLD2 = '#e9cf95', INK = '#e9ddc6', DIM = '#a58f6a', MUT = '#6a5942', VERD = '#62a187', VERD2 = '#8fd1b4', RED = '#d8503a';
+const STONE = '#100c09', STONE2 = '#181109', LINE = 'rgba(201,162,94,.22)', LINE2 = 'rgba(201,162,94,.4)';
+const ease = (k) => k < .5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const seg = (t, a, b) => clamp((t - a) / (b - a), 0, 1);
+const lerp = (a, b, k) => a + (b - a) * k;
+function txt(s, x, y, size, color, font = 'EB Garamond', weight = 400, align = 'left', ls = 0) { g.font = `${weight} ${size}px '${font}'`; g.fillStyle = color; g.textAlign = align; g.textBaseline = 'middle'; g.letterSpacing = ls + 'px'; g.fillText(s, x, y); g.letterSpacing = '0px'; }
+function rect(x, y, w, h, fill, stroke) { if (fill) { g.fillStyle = fill; g.fillRect(x, y, w, h); } if (stroke) { g.strokeStyle = stroke; g.lineWidth = 1; g.strokeRect(x + .5, y + .5, w - 1, h - 1); } }
+function bg() { g.fillStyle = '#080706'; g.fillRect(0, 0, W, H); const gl = g.createRadialGradient(W / 2, -100, 40, W / 2, -100, 900); gl.addColorStop(0, 'rgba(201,162,94,.10)'); gl.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = gl; g.fillRect(0, 0, W, H); }
+const fmt = (n, d = 2) => n.toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d });
+
+// ---------- the tablet (replica of the site) ----------
+const TB = { x: 300, y: 130, w: 680, h: 470 };
+const TABS = ['DEPOSIT', 'MINT', 'SHIELD', 'SEND UNSEEN', 'THE VIGIL', 'REDEEM'];
+function tablet(S) {
+  const { x, y, w, h } = TB;
+  g.save(); g.shadowColor = 'rgba(0,0,0,.7)'; g.shadowBlur = 40; rect(x, y, w, h, STONE); g.restore(); rect(x, y, w, h, null, LINE2);
+  // head strip
+  txt('RITE sUSD-001', x + 16, y + 16, 10, MUT, 'JetBrains Mono', 500, 'left', 2); txt('MARKED · UNSEEN', x + w - 16, y + 16, 10, GOLD, 'JetBrains Mono', 500, 'right', 2);
+  // balances
+  const by = y + 34, bh = 62, bw = w / 4;
+  const bals = [['USDG · collateral', fmt(S.usdg, 0)], ['STYX · share', fmt(S.styx, 1)], ['sUSD · public', fmt(S.susd)], ['sUSD · unseen', null]];
+  bals.forEach((b, i) => { const bx = x + i * bw; if (i) { g.strokeStyle = LINE; g.beginPath(); g.moveTo(bx + .5, by); g.lineTo(bx + .5, by + bh); g.stroke(); }
+    txt(b[0], bx + 14, by + 16, 12, DIM, 'EB Garamond', 400); if (b[1] != null) txt(b[1], bx + 14, by + 42, 20, INK, 'Cinzel', 600); else { if (S.privRedact) { rect(bx + 14, by + 32, 78, 20, '#0d0a06', 'rgba(201,162,94,.35)'); } else txt('—', bx + 14, by + 42, 20, GOLD, 'Cinzel', 600); } });
+  g.strokeStyle = LINE; g.beginPath(); g.moveTo(x, by + bh + .5); g.lineTo(x + w, by + bh + .5); g.stroke();
+  // tabs
+  const ty = by + bh, th = 40, tw = w / TABS.length;
+  TABS.forEach((t, i) => { const on = S.tab === i; txt(t, x + i * tw + tw / 2, ty + th / 2, 9.5, on ? GOLD : DIM, 'Cinzel', 600, 'center', 1.2); if (on) rect(x + i * tw, ty + th - 2, tw, 2, GOLD); });
+  g.strokeStyle = LINE; g.beginPath(); g.moveTo(x, ty + th + .5); g.lineTo(x + w, ty + th + .5); g.stroke();
+  // panel
+  const py = ty + th + 22, px = x + 22, pw = w - 44;
+  txt(S.note, px, py + 8, 14.5, DIM, 'EB Garamond', 400);
+  if (S.note2) txt(S.note2, px, py + 30, 14.5, DIM, 'EB Garamond', 400);
+  // field
+  const fy = py + 54; rect(px, fy, pw, 42, '#0c0906', S.focus ? GOLD : LINE2);
+  txt(S.input || (S.placeholder || '0.00'), px + 14, fy + 21, 15, S.input ? INK : MUT, 'JetBrains Mono', 500);
+  if (S.caret) rect(px + 14 + g.measureText(S.input || '').width + 2, fy + 12, 2, 18, GOLD);
+  txt(S.unit || 'USDG', px + pw - 60, fy + 21, 12, GOLD, 'Cinzel', 600, 'right', 1); if (S.max) txt('MAX', px + pw - 14, fy + 21, 10, GOLD, 'JetBrains Mono', 500, 'right', 1);
+  // kv rows
+  let ky = fy + 60; for (const kv of S.kv || []) { txt(kv[0], px, ky, 14, DIM); txt(kv[1], px + pw, ky, 13, INK, 'JetBrains Mono', 500, 'right'); ky += 26; }
+  // buttons
+  const bty = ky + 12; S._btns = [];
+  (S.btns || []).forEach((b, i, arr) => { const n = arr.length, gap = 10, bwid = (pw - gap * (n - 1)) / n, bx = px + i * (bwid + gap); const pressed = S.pressed === i; rect(bx, bty, bwid, 40, b.fill ? (pressed ? GOLD2 : GOLD) : (pressed ? 'rgba(201,162,94,.2)' : null), b.fill ? null : GOLD); txt(b.t, bx + bwid / 2, bty + 20, 11, b.fill ? '#0a0807' : GOLD, 'Cinzel', 600, 'center', 1.5); S._btns.push({ x: bx + bwid / 2, y: bty + 20 }); });
+  // link box
+  if (S.link) { const ly = bty + 56; rect(px, ly, pw, 40, '#0c0906', LINE2); txt(S.link, px + 12, ly + 20, 12.5, GOLD, 'JetBrains Mono', 500); rect(px + pw - 62, ly + 8, 52, 24, null, GOLD); txt('COPY', px + pw - 36, ly + 20, 9, GOLD, 'Cinzel', 600, 'center', 1); S._copy = { x: px + pw - 36, y: ly + 20 }; }
+  S._field = { x: px + 60, y: fy + 21 }; S._tab = (i) => ({ x: x + i * tw + tw / 2, y: ty + th / 2 }); S._max = { x: px + pw - 24, y: fy + 21 };
+}
+function cursor(x, y, click) { g.save(); g.translate(x, y); if (click > 0) { g.strokeStyle = `rgba(201,162,94,${1 - click})`; g.lineWidth = 3; g.beginPath(); g.arc(0, 0, 8 + click * 26, 0, 6.28); g.stroke(); }
+  g.fillStyle = '#f3ecd9'; g.strokeStyle = '#0a0807'; g.lineWidth = 1.5; g.beginPath(); g.moveTo(0, 0); g.lineTo(0, 19); g.lineTo(5, 15); g.lineTo(9, 23); g.lineTo(12, 22); g.lineTo(8, 14); g.lineTo(15, 14); g.closePath(); g.fill(); g.stroke(); g.restore(); }
+function toast(s, a) { if (a <= 0) return; g.save(); g.globalAlpha = a; g.font = "600 13px 'Cinzel'"; const w = g.measureText(s).width + 44; rect(W / 2 - w / 2, 660, w, 36, GOLD); txt(s, W / 2, 678, 13, '#0a0807', 'Cinzel', 600, 'center', .5); g.restore(); }
+function step(n, title, sub, a) { g.save(); g.globalAlpha = a; txt('0' + n, 60, 150, 44, GOLD, 'Cinzel', 800); txt(title, 60, 200, 22, INK, 'Cinzel', 700, 'left', 1); const words = sub.split('|'); words.forEach((l, i) => txt(l, 60, 236 + i * 22, 15, DIM)); g.restore(); }
+function walletPopup(a, k) { if (a <= 0) return; g.save(); g.globalAlpha = a; const x = 1010, y = 250, w = 230, h = 190; g.shadowColor = 'rgba(0,0,0,.8)'; g.shadowBlur = 30; rect(x, y, w, h, '#14110d'); g.shadowBlur = 0; rect(x, y, w, h, null, 'rgba(255,255,255,.12)');
+  txt('Wallet · Robinhood Chain', x + 16, y + 22, 12, '#9b968c', 'JetBrains Mono', 500); txt('Send 500 USDG', x + 16, y + 56, 18, '#f1ede6', 'Cinzel', 700); txt('to 0x28FC…19d1 (treasury)', x + 16, y + 82, 12, '#9b968c', 'JetBrains Mono', 500);
+  rect(x + 16, y + 120, w - 32, 38, k ? '#3ddc84' : '#2ecc71'); txt('CONFIRM', x + w / 2, y + 139, 12, '#0a0807', 'Cinzel', 700, 'center', 1.5); g.restore(); return { x: x + w / 2, y: y + 139 }; }
+
+// ---------- timeline ----------
+function typeIn(t, a, b, full) { const k = seg(t, a, b); return full.slice(0, Math.round(full.length * k)); }
+window.__seek = function (t) {
+  bg();
+  const S = { usdg: 0, styx: 0, susd: 0, privRedact: false, tab: 0, note: '', kv: [], btns: [] };
+  let cur = { x: 640, y: 600 }, click = 0, tst = ['', 0], popup = null;
+  const st = (n, a, b) => { S.step = n; S.a = Math.min(seg(t, a, a + .3), 1 - seg(t, b - .25, b)); };
+
+  // ── 0–4.0  DEPOSIT
+  if (t < 4.0) { st(1, 0, 4.0);
+    S.tab = 0; S.note = 'Send USDG on Robinhood Chain to the treasury. It is credited once the'; S.note2 = 'receipt confirms. Every deposited dollar sits in the treasury address.';
+    S.input = typeIn(t, .5, 1.2, '500'); S.focus = t > .3 && t < 1.6; S.caret = S.focus && Math.floor(t * 3) % 2 === 0; S.unit = 'USDG';
+    S.kv = [['Treasury', '0x28FC18…8419d1'], ['Credited so far', fmt(t > 3.4 ? 500 : 0, 2) + ' USDG']];
+    S.btns = [{ t: 'SEND USDG FROM WALLET', fill: false }];
+    if (t > 3.4) S.usdg = 500;
+    tablet(S);
+    const f = S._field, b = S._btns[0];
+    if (t < 1.6) cur = f; else if (t < 2.0) { const k = ease(seg(t, 1.6, 2.0)); cur = { x: lerp(f.x, b.x, k), y: lerp(f.y, b.y, k) }; } else cur = b;
+    if (t >= 2.0 && t < 2.4) { click = seg(t, 2.0, 2.4); S.pressed = 0; }
+    const pa = seg(t, 2.2, 2.5) * (1 - seg(t, 3.3, 3.5)); const cb = walletPopup(pa, t > 3.0);
+    if (t >= 2.5 && cb) { const k = ease(seg(t, 2.5, 2.9)); cur = { x: lerp(b.x, cb.x, k), y: lerp(b.y, cb.y, k) }; if (t >= 3.0 && t < 3.3) click = seg(t, 3.0, 3.3); }
+    tst = ['credited 500.00 USDG · in the treasury', seg(t, 3.4, 3.6) * (1 - seg(t, 3.85, 4.0))];
+    step(1, 'DEPOSIT USDG', 'Real USDG, sent from your own wallet|to the treasury. Verified on-chain,|then credited to your ledger.', S.a);
+  }
+  // ── 4.0–7.3  MINT
+  else if (t < 7.3) { st(2, 4.0, 7.3);
+    S.tab = 1; S.usdg = t > 6.5 ? 0 : 500; S.susd = t > 6.5 ? 500 : 0; S.styx = 0;
+    S.note = 'Mint $1-pegged sUSD with deposited USDG: 90% goes to collateral, the 10%'; S.note2 = 'algorithmic share buys STYX at market and burns it. Nothing is printed.';
+    S.input = typeIn(t, 4.6, 5.2, '500'); S.focus = t > 4.4 && t < 5.5; S.caret = S.focus && Math.floor(t * 3) % 2 === 0; S.unit = 'sUSD';
+    const m = +S.input || 0; S.kv = [['USDG collateral (90%)', fmt(m * .9) + ' USDG'], ['USDG → buys & burns STYX (10%)', fmt(m * .1) + ' USDG']];
+    S.btns = [{ t: 'MINT sUSD', fill: false }];
+    tablet(S);
+    const tb = S._tab(1), f = S._field, b = S._btns[0];
+    if (t < 4.3) { const k = ease(seg(t, 4.0, 4.3)); cur = { x: lerp(640, tb.x, k), y: lerp(600, tb.y, k) }; } else if (t < 4.5) { cur = tb; click = seg(t, 4.3, 4.5); } else if (t < 5.5) { const k = ease(seg(t, 4.5, 4.8)); cur = { x: lerp(tb.x, f.x, k), y: lerp(tb.y, f.y, k) }; } else if (t < 5.9) { const k = ease(seg(t, 5.5, 5.9)); cur = { x: lerp(f.x, b.x, k), y: lerp(f.y, b.y, k) }; } else cur = b;
+    if (t >= 6.0 && t < 6.4) { click = seg(t, 6.0, 6.4); S.pressed = 0; }
+    tst = ['minted 500 sUSD · 50 USDG bought & burned STYX', seg(t, 6.5, 6.7) * (1 - seg(t, 7.1, 7.3))];
+    step(2, 'MINT sUSD', '100% funded by USDG. 90% is hard|collateral, 10% buys $STYX at market|and burns it. Nothing is printed.', S.a);
+  }
+  // ── 7.3–10.3  SHIELD
+  else if (t < 10.3) { st(3, 7.3, 10.3);
+    S.tab = 2; S.susd = t > 9.6 ? 0 : 500; S.privRedact = t > 9.6;
+    S.note = 'Move public sUSD into the shielded pool. It becomes a note encrypted only'; S.note2 = 'to you. Your balance reads ████ on-chain.';
+    S.input = t > 8.3 ? '500' : ''; S.unit = 'sUSD'; S.max = true; S.placeholder = '0.00';
+    S.kv = [['Public sUSD available', fmt(S.susd)]]; S.btns = [{ t: 'SHIELD sUSD', fill: false }];
+    tablet(S);
+    const tb = S._tab(2), mx = S._max, b = S._btns[0];
+    if (t < 7.6) { const k = ease(seg(t, 7.3, 7.6)); cur = { x: lerp(640, tb.x, k), y: lerp(600, tb.y, k) }; } else if (t < 7.8) { cur = tb; click = seg(t, 7.6, 7.8); } else if (t < 8.1) { const k = ease(seg(t, 7.8, 8.1)); cur = { x: lerp(tb.x, mx.x, k), y: lerp(tb.y, mx.y, k) }; } else if (t < 8.4) { cur = mx; click = seg(t, 8.1, 8.4); } else if (t < 8.8) { const k = ease(seg(t, 8.4, 8.8)); cur = { x: lerp(mx.x, b.x, k), y: lerp(mx.y, b.y, k) }; } else cur = b;
+    if (t >= 9.0 && t < 9.4) { click = seg(t, 9.0, 9.4); S.pressed = 0; }
+    tst = ['shielded 498.50 sUSD · your balance now reads ████', seg(t, 9.6, 9.8) * (1 - seg(t, 10.1, 10.3))];
+    step(3, 'SHIELD IT', 'Your sUSD becomes a note encrypted|only to you. Amount and owner vanish|from the ledger. 30 bps to The Pyre.', S.a);
+  }
+  // ── 10.3–13.6  SEND AS A NOTE
+  else if (t < 13.6) { st(4, 10.3, 13.6);
+    S.tab = 3; S.privRedact = true;
+    S.note = 'Send shielded sUSD. Or write a Note: no address needed. Lock the amount'; S.note2 = 'behind a link and send the link to anyone.';
+    S.input = typeIn(t, 10.9, 11.3, '100'); S.unit = 'sUSD'; S.max = true;
+    S.kv = [['Your private balance', '████']]; S.btns = [{ t: 'SEND PRIVATELY', fill: false }, { t: 'CREATE PAY LINK', fill: true }];
+    if (t > 12.3) S.link = 'styxrh.xyz/#claim=7Kq2mNw8sVxP4cL9';
+    tablet(S);
+    const tb = S._tab(3), f = S._field, b = S._btns[1];
+    if (t < 10.6) { const k = ease(seg(t, 10.3, 10.6)); cur = { x: lerp(640, tb.x, k), y: lerp(600, tb.y, k) }; } else if (t < 10.8) { cur = tb; click = seg(t, 10.6, 10.8); } else if (t < 11.4) { const k = ease(seg(t, 10.8, 11.0)); cur = { x: lerp(tb.x, f.x, k), y: lerp(tb.y, f.y, k) }; } else if (t < 11.8) { const k = ease(seg(t, 11.4, 11.8)); cur = { x: lerp(f.x, b.x, k), y: lerp(f.y, b.y, k) }; } else if (t < 12.6 || !S._copy) cur = b; else { const k = ease(seg(t, 12.6, 12.9)); cur = { x: lerp(b.x, S._copy.x, k), y: lerp(b.y, S._copy.y, k) }; if (t >= 12.9 && t < 13.2) click = seg(t, 12.9, 13.2); }
+    if (t >= 11.9 && t < 12.3) { click = seg(t, 11.9, 12.3); S.pressed = 1; }
+    tst = [t < 12.9 ? 'note written for 99.70 sUSD · copy the link' : 'link copied · send it to anyone', t < 12.9 ? seg(t, 12.3, 12.5) : seg(t, 13.1, 13.3) * (1 - seg(t, 13.45, 13.6))];
+    step(4, 'PAY ANYONE', 'Write a Note. The link carries the|money. No address, no name. Whoever|opens it claims it, unseen.', S.a);
+  }
+  // ── 13.6–15  OUTRO
+  else { const a = seg(t, 13.6, 14.0); g.globalAlpha = a; txt('THAT IS THE CROSSING.', W / 2, H / 2 - 50, 52, INK, 'Cinzel', 800, 'center', 5); txt('deposit · mint · shield · pay', W / 2, H / 2 + 14, 22, DIM, 'JetBrains Mono', 500, 'center', 3); txt('styxrh.xyz  ·  $STYX', W / 2, H / 2 + 70, 24, GOLD, 'Cinzel', 700, 'center', 3); g.globalAlpha = 1; return true; }
+
+  toast(tst[0], tst[1]); cursor(cur.x, cur.y, click);
+  // progress dots
+  for (let i = 0; i < 4; i++) { g.fillStyle = i + 1 === S.step ? GOLD : 'rgba(201,162,94,.25)'; g.beginPath(); g.arc(60 + i * 18, 320, 4, 0, 6.28); g.fill(); }
+  return true;
+};
+window.__ready = document.fonts.ready.then(() => { __seek(0); return true; });
+</script></body></html>

@@ -248,3 +248,5 @@ Zcash is privacy with no dollar.
 sUSD is the third thing: a private dollar with a floor. 55% hard USDG minimum, view keys, pay-by-link, every use burns $STYX.
 
 styxrh.xyz
+
+How-to (hands-on): `brand/styx-howto-15s.mp4` — 15s drawn walkthrough of deposit → mint → shield → pay-by-link with a live cursor; not a screen recording.
