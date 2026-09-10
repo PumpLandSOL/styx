@@ -117,6 +117,17 @@ main{padding:20px 0 90px}
 .led .r:last-child{border-bottom:none}
 .led .ty{font-family:'JetBrains Mono';font-size:10px;letter-spacing:.12em;padding:3px 8px;border:1px solid var(--line2);border-radius:2px;text-transform:uppercase;min-width:78px;text-align:center;color:var(--dim)}
 .led .ty.private{color:#0a0807;background:var(--gold);border-color:var(--gold)}.led .ty.shield{color:var(--verd);border-color:rgba(98,161,135,.4)}
+.vig{display:grid;grid-template-columns:repeat(5,1fr);background:linear-gradient(180deg,#0f1410,var(--stone));border:1px solid rgba(98,161,135,.4);border-radius:3px;position:relative;overflow:hidden}
+.vig::before{content:"";position:absolute;inset:0;background:radial-gradient(60% 90% at 50% -20%,rgba(98,161,135,.16),transparent 70%);pointer-events:none}
+.vig .stat .v{color:var(--ink)}.vig .stat .v.g{color:var(--verd);text-shadow:0 0 18px rgba(98,161,135,.4)}
+.vig-note{font-size:14px;color:var(--dim);font-style:italic;margin:12px 2px 0}.vig-note b{font-style:normal;color:var(--verd)}
+.tmp{font-family:'JetBrains Mono';font-size:10px;letter-spacing:.2em;color:#0a0807;background:var(--verd);padding:3px 7px;border-radius:2px;margin-left:12px;vertical-align:middle}
+.led .ty.burn{color:#d8503a;border-color:rgba(216,80,58,.45)}
+.pyre{display:grid;grid-template-columns:repeat(4,1fr);background:linear-gradient(180deg,#1a0e08,var(--stone));border:1px solid rgba(216,80,58,.35);border-radius:3px;position:relative;overflow:hidden}
+.pyre::before{content:"";position:absolute;inset:0;background:radial-gradient(60% 90% at 50% 120%,rgba(216,80,58,.22),transparent 70%);pointer-events:none}
+.pyre .stat .v{color:#e9cf95}.pyre .stat .v.fire{color:#d8503a;text-shadow:0 0 18px rgba(216,80,58,.5)}
+.pyre-note{font-size:14px;color:var(--dim);font-style:italic;margin:12px 2px 0}.pyre-note b{font-style:normal;color:#d8503a}
+.newtag{font-family:'JetBrains Mono';font-size:10px;letter-spacing:.2em;color:#0a0807;background:#d8503a;padding:3px 7px;border-radius:2px;margin-left:12px;vertical-align:middle}
 .led .sg{font-family:'JetBrains Mono';font-size:13px;color:var(--mut)}.led .am{margin-left:auto;font-family:'Cinzel';font-weight:600;color:var(--ink)}
 
 /* roadmap — inscription */
@@ -211,7 +222,7 @@ footer{text-align:center;color:var(--mut);font-style:italic;font-size:14px;paddi
       <div class="b priv"><div class="l">sUSD · unseen</div><div class="v"><span id="b-priv-red" class="redact">██████</span><span id="b-priv-val" style="display:none"></span><span class="reveal" id="b-priv-eye">reveal</span></div></div>
     </div>
     <div class="tabs">
-      <button class="on" data-tab="mint">Mint</button><button data-tab="shield">Shield</button><button data-tab="send">Send Unseen</button><button data-tab="redeem">Redeem</button>
+      <button data-tab="deposit">Deposit</button><button class="on" data-tab="mint">Mint</button><button data-tab="shield">Shield</button><button data-tab="send">Send Unseen</button><button data-tab="vigil">The Vigil</button><button data-tab="redeem">Redeem</button>
     </div>
     <div class="panel" id="panel"></div>
   </div>
@@ -225,6 +236,28 @@ footer{text-align:center;color:var(--mut);font-style:italic;font-size:14px;paddi
     <div class="stat"><div class="l">sUSD struck</div><div class="v" id="s-sup">—</div></div>
     <div class="stat"><div class="l">carried unseen</div><div class="v" id="s-shd">—</div></div>
   </div>
+
+  <!-- THE VIGIL -->
+  <div class="sec" id="vigil"><span>The vigil · temporary staking<span class="tmp">30 DAYS</span></span></div>
+  <div class="vig">
+    <div class="stat"><div class="l">APY · paid in $STYX</div><div class="v g" id="v-apy">—</div></div>
+    <div class="stat"><div class="l">sUSD keeping vigil</div><div class="v" id="v-staked">—</div></div>
+    <div class="stat"><div class="l">reward pool left</div><div class="v" id="v-pool">—</div></div>
+    <div class="stat"><div class="l">ends in</div><div class="v" id="v-ends">—</div></div>
+    <div class="stat"><div class="l">watchers</div><div class="v" id="v-n">—</div></div>
+  </div>
+  <div class="vig-note">Temporary by design. Stake sUSD for <b>30 days</b> and earn a fixed APY paid in <b>$STYX from a pre-funded treasury pool</b>. Nothing is printed, no sUSD is created, and when the pool or the clock runs out the vigil ends. <b>This is how you avoid the Anchor problem:</b> a yield that has an end date cannot become the thing holding up the peg.</div>
+
+  <!-- THE PYRE -->
+  <div class="sec" id="pyre"><span>The pyre · buyback &amp; burn<span class="newtag">NEW</span></span></div>
+  <div class="pyre">
+    <div class="stat"><div class="l">$STYX burned</div><div class="v fire" id="p-styx">—</div></div>
+    <div class="stat"><div class="l">bought back</div><div class="v" id="p-usd">—</div></div>
+    <div class="stat"><div class="l">toll gathered · next burn</div><div class="v" id="p-toll">—</div></div>
+    <div class="stat"><div class="l">burn epochs</div><div class="v" id="p-ep">—</div></div>
+  </div>
+  <div class="pyre-note">Every crossing pays the ferryman: <b>30 bps</b> on shield, send and unshield, <b>50 bps</b> on redeem. Tolls gather in USDG and each epoch the protocol buys <b>$STYX</b> at market and burns it. The burn is public. The payer never is.</div>
+  <div class="led" id="pyrefeed" style="margin-top:14px"></div>
 
   <!-- LEDGER -->
   <div class="sec"><span>The unseen ledger · recent</span></div>
@@ -258,12 +291,16 @@ footer{text-align:center;color:var(--mut);font-style:italic;font-size:14px;paddi
     <details><summary>What can an observer see when I send unseen?</summary><div class="a">A <b>nullifier</b> spent and a <b>new commitment</b> added. No amount, no sender, no recipient. The recipient decrypts their note with their key; nobody else can.</div></details>
     <details><summary>Can I get back to public sUSD?</summary><div class="a">Yes. Unshield returns a private note to your public balance at any time, and Redeem burns public sUSD for your USDG collateral plus the $STYX share. <i>Private when you choose, public when you choose.</i></div></details>
     <details><summary>What is $STYX for?</summary><div class="a">$STYX is the share token of the protocol. A small amount is <b>burned on every mint</b> and minted back on every redeem, so demand for sUSD flows into $STYX. It is also the governance token for the rites ahead.</div></details>
+    <details><summary>Is my USDG actually deposited?</summary><div class="a">Yes. Minting starts with a real <b>USDG transfer on Robinhood Chain to the treasury</b>. The server reads the transaction receipt, checks the Transfer log is from your wallet to the treasury, and only then credits your ledger. Every deposited dollar sits in the treasury address you can see on the explorer. <i>Nothing on this site is paper any more.</i></div></details>
+    <details><summary>How do I get USDG back out?</summary><div class="a">Redeem sUSD for USDG on the ledger, then <b>Withdraw</b>. Withdrawals go into a queue the treasury pays out by hand from a cold wallet, usually within 24 hours, and the payout tx hash is written next to your request. There is deliberately <b>no hot key on the server</b>.</div></details>
+    <details><summary>What is The Vigil, and why is it temporary?</summary><div class="a">A 30-day staking window: stake sUSD, earn a fixed APY, paid in <b>$STYX from a pool the treasury set aside in advance</b>. It has a hard end date and a hard pool size. Anchor's 20% was permanent and subsidised, so it became the only reason to hold UST and the peg died with it. A yield that <i>ends</i> can't do that.</div></details>
+    <details><summary>What is The Pyre?</summary><div class="a">A ferry toll. Every shield, private send and unshield pays <b>30 bps</b>, every redeem pays <b>50 bps</b>. The toll gathers in USDG and each epoch the protocol buys <b>$STYX</b> at market and burns it, publishing a burn receipt. Usage of private money becomes permanent scarcity in the share token. <i>The burn is public. The payer never is.</i></div></details>
     <details><summary>Which chain and which wallet?</summary><div class="a"><b>Robinhood Chain</b> (chainId 4663). Connect any EVM wallet such as MetaMask or Rabby; the site switches the network for you. USDG is the collateral asset.</div></details>
     <details><summary>Is this safe?</summary><div class="a">Algorithmic stablecoins carry <b>real risk</b>: a peg is a mechanism, not a promise, and history has UST and Terra in it. Shielded notes are encrypted to your keys alone, so losing your keys loses the notes. Size accordingly.</div></details>
   </div>
 
   <div class="ca" id="cabar" style="display:none"><span class="t">$STYX CA</span><code id="ca-mint"></code><button id="ca-copy">Copy</button></div>
-  <div class="ca" id="trbar" style="display:none"><span class="t">Treasury</span><code id="tr-addr"></code><button id="tr-copy">Copy</button></div>
+  <div class="ca" id="trbar" style="display:none"><span class="t">Treasury</span><code id="tr-addr"></code><button id="tr-copy">Copy</button><span class="t" id="tr-chain" style="margin-left:10px"></span></div>
   <div class="disc"><div class="h">⚠ Disclosure · read me</div><b>sUSD is a fractional-algorithmic stablecoin.</b> The peg is defended by the collateral ratio and open redemption, not guaranteed; algorithmic stablecoins carry real risk (see UST/Terra). Shielded notes are encrypted to your keys alone. Nothing here is financial advice.</div>
 </main>
 

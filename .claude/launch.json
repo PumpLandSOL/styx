@@ -1,0 +1,6 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    { "name": "styx", "runtimeExecutable": "node", "runtimeArgs": ["_studio/dev.js"], "port": 8198 }
+  ]
+}

@@ -1,0 +1,142 @@
+<!doctype html><html><head><meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;800&family=EB+Garamond:ital@1&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>html,body{margin:0;background:#080706;overflow:hidden}canvas{display:block}</style>
+</head><body><canvas id="c" width="1280" height="720"></canvas>
+<script>
+// THE PYRE — 15s deterministic hype scene. window.__seek(t) renders frame at time t (seconds).
+const W = 1280, H = 720, cv = document.getElementById('c'), g = cv.getContext('2d');
+const GOLD = '#c9a25e', GOLD2 = '#e9cf95', INK = '#e9ddc6', RED = '#d8503a', VERD = '#62a187', MUT = '#8f8470';
+// seeded RNG for deterministic particles
+function rng(seed) { let s = seed >>> 0; return () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; }; }
+const R = rng(7);
+const EMBERS = Array.from({ length: 260 }, (_, i) => ({ x: R(), y: R(), sp: 0.035 + R() * 0.09, sz: 1 + R() * 2.6, ph: R() * 6.28, dr: (R() - .5) * 0.05, hot: R() }));
+const SPARKS = Array.from({ length: 220 }, () => ({ a: R() * 6.28, v: 160 + R() * 520, sz: 2.5 + R() * 4.5, life: 0.8 + R() * 1.4, hot: R() }));
+const RECEIPTS = ['epoch 12 · 7Kq2mNw8…xP4c · 41,280 STYX', 'epoch 13 · Bv9rLtE3…qW1a · 38,905 STYX', 'epoch 14 · Hs4nZpY6…mR7d · 52,116 STYX', 'epoch 15 · Qe8wJcK1…tN2f · 47,733 STYX', 'epoch 16 · Xm3dFvU9…hB5g · 61,402 STYX', 'epoch 17 · Wp6tGyS2…kL8j · 44,019 STYX', 'epoch 18 · Nr1kHbA5…vC3m · 58,377 STYX', 'epoch 19 · Zt7fDqM4…sJ6p · 49,840 STYX'];
+const ease = (k) => k < .5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const seg = (t, a, b) => clamp((t - a) / (b - a), 0, 1);
+const fadeIO = (t, a, b, f = .4) => Math.min(seg(t, a, a + f), 1 - seg(t, b - f, b));
+
+function bg(t) {
+  g.fillStyle = '#080706'; g.fillRect(0, 0, W, H);
+  const glow = g.createRadialGradient(W / 2, H * 1.15, 40, W / 2, H * 1.15, 700);
+  const heat = 0.25 + 0.55 * seg(t, 2.2, 6);
+  glow.addColorStop(0, `rgba(216,80,58,${0.55 * heat})`); glow.addColorStop(.45, `rgba(201,120,50,${0.18 * heat})`); glow.addColorStop(1, 'rgba(0,0,0,0)');
+  g.fillStyle = glow; g.fillRect(0, 0, W, H);
+}
+function embers(t, intensity) {
+  for (const e of EMBERS) {
+    const y = ((e.y - t * e.sp) % 1 + 1) % 1;
+    const x = e.x + Math.sin(t * 1.3 + e.ph) * 0.012 + e.dr * (1 - y);
+    const a = intensity * (0.25 + 0.75 * Math.pow(y, 0.6)) * (0.6 + 0.4 * Math.sin(t * 6 + e.ph));
+    const col = e.hot > .6 ? `rgba(233,207,149,${a})` : e.hot > .3 ? `rgba(216,80,58,${a})` : `rgba(201,162,94,${a})`;
+    g.fillStyle = col; g.beginPath(); g.arc(x * W, y * H, e.sz, 0, 6.28); g.fill();
+  }
+}
+function txt(s, x, y, size, color, font = 'Cinzel', weight = 800, align = 'center', ls = 0) {
+  g.font = `${weight} ${size}px '${font}'`; g.fillStyle = color; g.textAlign = align; g.textBaseline = 'middle';
+  if (ls) { g.letterSpacing = ls + 'px'; }
+  g.fillText(s, x, y); g.letterSpacing = '0px';
+}
+function grain() { g.fillStyle = 'rgba(0,0,0,.18)'; for (let i = 0; i < 6; i++) { g.fillRect(0, i * 130, W, 1); } }
+function vignette() { const v = g.createRadialGradient(W / 2, H / 2, 300, W / 2, H / 2, 820); v.addColorStop(0, 'rgba(0,0,0,0)'); v.addColorStop(1, 'rgba(0,0,0,.55)'); g.fillStyle = v; g.fillRect(0, 0, W, H); }
+function coin(cx, cy, r, alpha) {
+  g.save(); g.globalAlpha = alpha;
+  g.shadowColor = 'rgba(201,162,94,.6)'; g.shadowBlur = 40;
+  const grd = g.createRadialGradient(cx - r * .3, cy - r * .35, r * .1, cx, cy, r);
+  grd.addColorStop(0, GOLD2); grd.addColorStop(.5, GOLD); grd.addColorStop(1, '#6f5228');
+  g.fillStyle = grd; g.beginPath(); g.arc(cx, cy, r, 0, 6.28); g.fill();
+  g.shadowBlur = 0; g.strokeStyle = 'rgba(255,240,200,.35)'; g.lineWidth = 2; g.beginPath(); g.arc(cx, cy, r * .86, 0, 6.28); g.stroke();
+  txt('S', cx, cy + r * .04, r * 1.1, '#0a0807', 'Cinzel', 800);
+  g.restore();
+}
+function sparks(t0, t, cx, cy, alpha) {
+  const dt = t - t0; if (dt < 0) return;
+  for (const s of SPARKS) {
+    const k = dt / s.life; if (k > 1) continue;
+    const d = s.v * dt * (1 - k * .4); const x = cx + Math.cos(s.a) * d, y = cy + Math.sin(s.a) * d - 220 * dt * dt + 60 * dt;
+    const a = alpha * (1 - k);
+    g.fillStyle = s.hot > .5 ? `rgba(233,207,149,${a})` : `rgba(216,80,58,${a})`; g.beginPath(); g.arc(x, y, s.sz * (1 - k * .5), 0, 6.28); g.fill();
+  }
+}
+function redact(x, y, w, h, a) { g.fillStyle = `rgba(13,10,6,${a})`; g.fillRect(x, y, w, h); g.strokeStyle = `rgba(201,162,94,${a * .5})`; g.lineWidth = 1; g.strokeRect(x + .5, y + .5, w - 1, h - 1); }
+function num(n) { return Math.floor(n).toLocaleString('en-US'); }
+
+window.__seek = function (t) {
+  bg(t);
+  const emb = t < 13.6 ? 0.9 : 0.9 * (1 - seg(t, 13.6, 15));
+  embers(t, emb);
+  vignette();
+
+  // ── 0.0–2.6  "EVERY PRIVATE PAYMENT"
+  if (t < 2.7) {
+    const a = fadeIO(t, 0.3, 2.7, .45); const k = ease(seg(t, .3, 1.4));
+    g.globalAlpha = a; txt('EVERY PRIVATE PAYMENT', W / 2, H / 2 - 10 + (1 - k) * 18, 64, INK, 'Cinzel', 800, 'center', 6);
+    txt('shield · send · unshield', W / 2, H / 2 + 58, 24, MUT, 'EB Garamond', 400); g.globalAlpha = 1;
+  }
+  // ── 2.6–5.2  "NOW BURNS $STYX."
+  if (t >= 2.6 && t < 5.3) {
+    const a = fadeIO(t, 2.6, 5.3, .35); const k = ease(seg(t, 2.6, 3.3)); const sc = 1.12 - .12 * k;
+    g.save(); g.globalAlpha = a; g.translate(W / 2, H / 2); g.scale(sc, sc);
+    g.shadowColor = 'rgba(216,80,58,.75)'; g.shadowBlur = 50 * (0.6 + 0.4 * Math.sin(t * 9));
+    txt('NOW BURNS', 0, -48, 84, INK, 'Cinzel', 800, 'center', 4);
+    txt('$STYX.', 0, 52, 110, RED, 'Cinzel', 800, 'center', 6);
+    g.restore();
+  }
+  // ── 5.2–8.4  THE PYRE + coin falls into fire
+  if (t >= 5.2 && t < 8.5) {
+    const a = fadeIO(t, 5.2, 8.5, .35);
+    const drop = ease(seg(t, 5.4, 6.6)); const cy = 120 + drop * 440; const hit = 6.6;
+    const ca = t < hit ? 1 : 1 - seg(t, hit, hit + .25);
+    if (ca > 0) coin(W / 2, cy, 92 * (1 - .5 * seg(t, hit, hit + .25)), a * ca);
+    sparks(hit, t, W / 2, 560, a * 1.4);
+    g.globalAlpha = a * seg(t, 6.7, 7.2);
+    txt('THE PYRE', W / 2, 250, 120, GOLD2, 'Cinzel', 800, 'center', 14);
+    txt('a ferry toll on every crossing · bought back at market · burned', W / 2, 340, 26, MUT, 'EB Garamond', 400);
+    g.globalAlpha = 1;
+  }
+  // ── 8.4–11.6  counter + receipts
+  if (t >= 8.4 && t < 11.5) {
+    const a = fadeIO(t, 8.4, 11.5, .3); const k = ease(seg(t, 8.5, 11.2));
+    const n = 1284910 * k;
+    g.globalAlpha = a;
+    txt('$STYX BURNED', W / 2, 150, 22, GOLD, 'JetBrains Mono', 500, 'center', 8);
+    g.shadowColor = 'rgba(216,80,58,.6)'; g.shadowBlur = 30;
+    txt(num(n), W / 2, 240, 118, RED, 'Cinzel', 800, 'center', 2); g.shadowBlur = 0;
+    txt('bought back · $' + num(n * 0.11), W / 2, 318, 26, GOLD2, 'EB Garamond', 400);
+    // receipts scroll
+    const rows = 5; const off = (t - 8.5) * 1.15;
+    for (let i = 0; i < RECEIPTS.length; i++) {
+      const p = i - off + rows; if (p < -1 || p > rows) continue;
+      const y = 390 + p * 46; const ra = clamp(1 - Math.abs(p - rows / 2) / (rows / 2 + .5), 0, 1);
+      g.globalAlpha = a * ra;
+      g.fillStyle = 'rgba(216,80,58,.9)'; g.fillRect(300, y - 10, 46, 20); txt('BURN', 323, y + 1, 11, '#0a0807', 'JetBrains Mono', 500, 'center', 2);
+      txt(RECEIPTS[i], 366, y + 1, 21, INK, 'JetBrains Mono', 500, 'left');
+    }
+    g.globalAlpha = 1;
+  }
+  // ── 11.6–13.7  public burn. hidden payer.
+  if (t >= 11.5 && t < 13.8) {
+    const a = fadeIO(t, 11.5, 13.8, .3);
+    g.globalAlpha = a;
+    txt('THE BURN IS PUBLIC.', W / 2, H / 2 - 70, 62, INK, 'Cinzel', 800, 'center', 4);
+    const k = seg(t, 12.2, 12.9);
+    txt('THE PAYER NEVER IS.', W / 2, H / 2 + 30, 62, GOLD2, 'Cinzel', 800, 'center', 4);
+    g.font = "800 62px 'Cinzel'"; g.letterSpacing = '4px'; const wAll = g.measureText('THE PAYER NEVER IS.').width, wThe = g.measureText('THE ').width, wMid = g.measureText('PAYER NEVER').width; g.letterSpacing = '0px'; g.globalAlpha = a * k; redact(W / 2 - wAll / 2 + wThe - 6, H / 2 + 0, wMid + 12, 62, 1);
+    g.globalAlpha = a; txt('30 bps shield · send · unshield   ·   50 bps redeem', W / 2, H / 2 + 120, 22, MUT, 'JetBrains Mono', 500, 'center', 2);
+    g.globalAlpha = 1;
+  }
+  // ── 13.7–15  STYX outro
+  if (t >= 13.6) {
+    const a = seg(t, 13.6, 14.1);
+    g.globalAlpha = a; coin(W / 2, H / 2 - 120, 70, a);
+    txt('STYX', W / 2, H / 2 + 20, 96, GOLD, 'Cinzel', 800, 'center', 22);
+    txt('styxrh.xyz  ·  $STYX  ·  private dollars on Robinhood Chain', W / 2, H / 2 + 100, 22, MUT, 'JetBrains Mono', 500, 'center', 2);
+    g.globalAlpha = 1;
+  }
+  grain();
+  return true;
+};
+window.__ready = document.fonts.ready.then(() => { __seek(0); return true; });
+</script></body></html>

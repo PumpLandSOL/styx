@@ -1,0 +1,84 @@
+<!doctype html><html><head><meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=EB+Garamond:ital@0;1&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#e9ddc6;--dim:#a58f6a;--mut:#6a5942;--gold:#c9a25e;--gold2:#e9cf95;--verd:#62a187;--verd2:#8fd1b4;--red:#d8503a;--dead:#7a6d5c;--line:rgba(201,162,94,.18);--line2:rgba(201,162,94,.34)}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{font-family:'EB Garamond',serif;color:var(--ink);background:#080706;overflow:hidden}
+.ci{font-family:'Cinzel',serif}.mo{font-family:'JetBrains Mono',monospace}
+.stage{position:relative;width:2400px;height:1480px;overflow:hidden;background:
+  radial-gradient(120% 60% at 50% -8%,rgba(98,161,135,.10),transparent 55%),
+  radial-gradient(70% 50% at 50% 118%,rgba(201,162,94,.08),transparent 60%),#080706}
+.grain{position:absolute;inset:0;opacity:.05;background-image:radial-gradient(rgba(233,221,198,.5) .5px,transparent .6px);background-size:3px 3px}
+.wrap{position:absolute;inset:0;padding:76px 120px 0}
+.eye{font-size:26px;letter-spacing:.34em;color:var(--verd);text-transform:uppercase;text-align:center}
+.title{font-size:80px;font-weight:800;text-align:center;margin:18px 0 8px}
+.title em{font-style:normal;color:var(--verd2)}
+.sub{font-size:30px;font-style:italic;color:var(--dim);text-align:center;margin-bottom:44px}
+.hero{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border:1px solid rgba(98,161,135,.45);background:linear-gradient(180deg,rgba(98,161,135,.10),rgba(98,161,135,.02))}
+.hs{padding:30px 24px;text-align:center;border-right:1px solid rgba(98,161,135,.25)}.hs:last-child{border-right:none}
+.hs .l{font-family:'JetBrains Mono';font-size:19px;letter-spacing:.16em;color:var(--mut);text-transform:uppercase}
+.hs .v{font-family:'Cinzel';font-weight:800;font-size:64px;color:var(--verd2);margin-top:10px;text-shadow:0 0 30px rgba(98,161,135,.35)}
+.hs .v small{display:block;font-family:'EB Garamond';font-style:italic;font-weight:400;font-size:24px;color:var(--dim);margin-top:4px;text-shadow:none}
+.cols{margin-top:40px;display:grid;grid-template-columns:1fr 1fr;gap:40px}
+.card{border:1px solid var(--line);padding:30px 36px;background:rgba(255,255,255,.012)}
+.card.r{border-color:rgba(98,161,135,.45);background:linear-gradient(180deg,rgba(98,161,135,.07),rgba(98,161,135,.015))}
+.ch{font-family:'Cinzel';font-weight:800;font-size:36px;letter-spacing:.05em}
+.card.l .ch{color:var(--dead)}.card.r .ch{color:var(--verd2)}
+.ch small{font-family:'JetBrains Mono';font-weight:400;font-size:19px;letter-spacing:.12em;text-transform:uppercase;margin-left:16px;color:var(--mut)}
+.row{display:flex;justify-content:space-between;align-items:baseline;gap:20px;font-size:26px;padding:13px 0;border-top:1px solid var(--line)}
+.row:first-of-type{margin-top:16px}
+.row span{color:var(--dim)}.row b{font-weight:400;color:var(--ink);text-align:right}
+.card.l .row b i{font-style:normal;color:var(--red)}.card.r .row b i{font-style:normal;color:var(--verd2)}
+.punch{margin-top:18px;padding-top:16px;border-top:1px dashed var(--line);font-size:27px;line-height:1.35;color:var(--dim)}
+.card.l .punch i{font-style:normal;color:var(--red)}.card.r .punch i{font-style:normal;color:var(--verd2)}
+.strip{margin-top:40px;display:grid;grid-template-columns:repeat(3,1fr);gap:30px}
+.s{border:1px solid var(--line);padding:24px 30px;background:rgba(255,255,255,.012)}
+.s .k{font-family:'JetBrains Mono';font-size:18px;letter-spacing:.18em;color:var(--gold);text-transform:uppercase}
+.s .t{font-family:'Cinzel';font-weight:700;font-size:26px;color:var(--ink);margin:8px 0 8px}
+.s .d{font-size:23px;line-height:1.35;color:var(--dim)}.s .d b{font-weight:400;color:var(--verd2)}
+.foot{position:absolute;left:0;right:0;bottom:40px;text-align:center;font-family:'JetBrains Mono';font-size:22px;color:var(--mut);letter-spacing:.08em}
+.foot b{color:var(--gold)}
+</style></head>
+<body><div class="stage"><div class="grain"></div>
+  <div class="wrap">
+    <div class="eye ci">$STYX &middot; update &middot; real deposits + temporary staking</div>
+    <div class="title ci">The Vigil. <em>30 days, then it ends.</em></div>
+    <div class="sub">Stake sUSD, earn a fixed APY paid in $STYX from a pool the treasury funded in advance. A yield with an end date can&rsquo;t become the peg.</div>
+
+    <div class="hero">
+      <div class="hs"><div class="l mo">APY &middot; paid in $STYX</div><div class="v ci">40%<small>fixed for the window</small></div></div>
+      <div class="hs"><div class="l mo">window</div><div class="v ci">30 days<small>Sep 11 &rarr; Oct 11 &middot; hard stop</small></div></div>
+      <div class="hs"><div class="l mo">reward pool</div><div class="v ci">5M STYX<small>pre-funded &middot; when it&rsquo;s gone, it&rsquo;s gone</small></div></div>
+      <div class="hs"><div class="l mo">cap</div><div class="v ci">250K<small>sUSD staked, protocol-wide</small></div></div>
+    </div>
+
+    <div class="cols">
+      <div class="card l">
+        <div class="ch ci">Anchor <small>UST &middot; 2022</small></div>
+        <div class="row"><span>yield</span><b>20% &middot; <i>permanent</i></b></div>
+        <div class="row"><span>paid from</span><b><i>subsidies</i> &middot; topped up by LFG</b></div>
+        <div class="row"><span>paid in</span><b>more UST</b></div>
+        <div class="row"><span>end date</span><b><i>none</i></b></div>
+        <div class="row"><span>share of all UST inside</span><b><i>~75%</i></b></div>
+        <div class="punch">The yield became the only reason to hold the dollar. When it was cut, <i>$14B walked</i> and the peg walked with it.</div>
+      </div>
+      <div class="card r">
+        <div class="ch ci">The Vigil <small>sUSD &middot; 2026</small></div>
+        <div class="row"><span>yield</span><b>40% &middot; <i>30 days</i></b></div>
+        <div class="row"><span>paid from</span><b>a <i>fixed pool</i> set aside up front</b></div>
+        <div class="row"><span>paid in</span><b>$STYX &middot; <i>no sUSD is created</i></b></div>
+        <div class="row"><span>end date</span><b><i>Oct 11</i> &middot; or when the pool is spent</b></div>
+        <div class="row"><span>deposits</span><b><i>real USDG</i> &rarr; treasury, on-chain</b></div>
+        <div class="punch">A yield that <i>ends</i> is a promotion, not a foundation. The peg is held by USDG collateral, not by the reward.</div>
+      </div>
+    </div>
+
+    <div class="strip">
+      <div class="s"><div class="k mo">also in this update &middot; 01</div><div class="t ci">Real deposits</div><div class="d">Mint starts with a <b>USDG transfer on Robinhood Chain to the treasury</b>, verified from the receipt. Every deposited dollar is visible on-chain.</div></div>
+      <div class="s"><div class="k mo">also in this update &middot; 02</div><div class="t ci">Nothing printed to mint</div><div class="d">The algorithmic slice is paid in USDG too: it <b>buys $STYX at market and burns it</b> through The Pyre.</div></div>
+      <div class="s"><div class="k mo">also in this update &middot; 03</div><div class="t ci">No hot key</div><div class="d">Withdrawals queue and the treasury pays out <b>by hand from a cold wallet</b>, hash written next to your request.</div></div>
+    </div>
+  </div>
+  <div class="foot mo">&#9899; <b>styxrh.xyz</b> &nbsp;&middot;&nbsp; $STYX &nbsp;&middot;&nbsp; temporary by design &nbsp;&middot;&nbsp; defended, not guaranteed.</div>
+</div></body></html>

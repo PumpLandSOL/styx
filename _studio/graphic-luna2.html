@@ -1,0 +1,117 @@
+<!doctype html><html><head><meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=EB+Garamond:ital@0;1&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#080706;--ink:#e9ddc6;--dim:#a58f6a;--mut:#6a5942;--gold:#c9a25e;--gold2:#e9cf95;--verd:#62a187;--red:#d8503a;--dead:#7a6d5c;
+  --line:rgba(201,162,94,.18);--line2:rgba(201,162,94,.34);}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{font-family:'EB Garamond',serif;color:var(--ink);background:#080706;overflow:hidden}
+.ci{font-family:'Cinzel',serif}.mo{font-family:'JetBrains Mono',monospace}
+.stage{position:relative;width:2400px;height:1900px;overflow:hidden;background:
+  radial-gradient(120% 60% at 50% -8%,rgba(201,162,94,.07),transparent 55%),
+  radial-gradient(60% 50% at 14% 112%,rgba(216,80,58,.05),transparent 60%),
+  radial-gradient(60% 50% at 86% 112%,rgba(98,161,135,.06),transparent 60%),#080706}
+.grain{position:absolute;inset:0;opacity:.05;background-image:radial-gradient(rgba(233,221,198,.5) .5px,transparent .6px);background-size:3px 3px}
+.wrap{position:absolute;inset:0;padding:70px 130px 0}
+.eye{font-size:26px;letter-spacing:.34em;color:var(--gold);text-transform:uppercase;text-align:center}
+.title{font-size:84px;font-weight:800;text-align:center;margin:22px 0 10px;letter-spacing:.01em}
+.title em{font-style:normal;color:var(--gold)}
+.sub{font-size:30px;font-style:italic;color:var(--dim);text-align:center;margin-bottom:34px}
+
+.strip{display:grid;grid-template-columns:1fr 1fr;gap:40px;margin-bottom:34px}
+.panel{border:1px solid var(--line);padding:24px 36px;background:rgba(255,255,255,.012)}
+.panel.r{border-color:var(--line2);background:linear-gradient(180deg,rgba(201,162,94,.07),rgba(201,162,94,.02))}
+.ph{font-family:'Cinzel';font-weight:800;font-size:40px;letter-spacing:.06em}
+.panel.l .ph{color:var(--dead)}.panel.r .ph{color:var(--gold)}
+.ph small{font-family:'JetBrains Mono';font-weight:400;font-size:20px;letter-spacing:.12em;text-transform:uppercase;margin-left:18px;color:var(--mut)}
+.steps{display:flex;align-items:stretch;margin-top:22px}
+.st{flex:1;position:relative;padding:18px 20px 14px 22px;border-left:2px solid var(--line)}
+.st .n{font-family:'JetBrains Mono';font-size:20px;color:var(--mut);letter-spacing:.1em}
+.st .t{font-family:'Cinzel';font-weight:700;font-size:24px;margin:8px 0 6px;line-height:1.25}
+.st .d{font-size:21px;line-height:1.3;color:var(--dim)}
+.panel.l .st .t{color:var(--red)}
+.panel.r .st .t{color:var(--gold2)}
+.panel.r .st .d b{color:var(--verd);font-weight:500}
+.panel.l .st .d b{color:var(--red);font-weight:500}
+.brk{font-family:'JetBrains Mono';font-size:22px;letter-spacing:.14em;text-transform:uppercase;margin-top:20px;padding-top:16px;border-top:1px dashed var(--line)}
+.panel.l .brk{color:var(--red)}.panel.r .brk{color:var(--verd)}
+
+table{width:100%;border-collapse:collapse;table-layout:fixed}
+col.attr{width:22%}
+th{padding:16px 30px;text-align:center;vertical-align:middle}
+.hL{font-family:'Cinzel';font-weight:800;font-size:44px;color:var(--dead);letter-spacing:.04em}
+.hR{font-family:'Cinzel';font-weight:800;font-size:44px;color:var(--gold);letter-spacing:.04em}
+th small{display:block;font-family:'JetBrains Mono';font-weight:400;font-size:20px;letter-spacing:.1em;margin-top:8px;text-transform:uppercase;color:var(--mut)}
+td{padding:16px 30px;border-top:1px solid var(--line);vertical-align:middle}
+.attr{font-family:'Cinzel';font-weight:600;font-size:27px;letter-spacing:.08em;color:var(--ink);text-transform:uppercase}
+.attr small{display:block;font-family:'EB Garamond';font-style:italic;font-size:21px;color:var(--mut);text-transform:none;letter-spacing:0;margin-top:4px}
+.vL{font-size:29px;color:var(--dead);line-height:1.3}
+.vR{font-size:29px;color:var(--ink);line-height:1.3}
+.vR b{color:var(--verd);font-weight:500}.vL b{color:var(--red);font-weight:500}
+.colR{background:linear-gradient(180deg,rgba(201,162,94,.06),rgba(201,162,94,.02));border-left:1px solid var(--line2);border-right:1px solid var(--line2)}
+.redact{display:inline-block;background:#0d0a06;box-shadow:inset 0 0 0 1px rgba(201,162,94,.3);border-radius:2px;width:120px;height:28px;vertical-align:middle}
+.out td{border-top:2px solid var(--line2);padding:26px 30px}
+.outL{font-family:'Cinzel';font-weight:700;font-size:48px;color:var(--red)}
+.outL small{display:block;font-size:23px;color:var(--mut);font-family:'EB Garamond';font-style:italic;margin-top:4px}
+.outR{font-family:'Cinzel';font-weight:800;font-size:48px;color:var(--gold2);text-shadow:0 0 26px rgba(201,162,94,.4)}
+.outR small{display:block;font-family:'Cinzel';font-weight:700;font-size:23px;color:var(--verd);margin-top:8px;letter-spacing:.08em}
+.foot{position:absolute;left:0;right:0;bottom:44px;text-align:center;font-family:'JetBrains Mono';font-size:24px;color:var(--mut);letter-spacing:.1em}
+.foot b{color:var(--gold)}
+</style></head>
+<body><div class="stage"><div class="grain"></div>
+  <div class="wrap">
+    <div class="eye ci">Anatomy of a death spiral · Terra, May 2022</div>
+    <div class="title ci">LUNA printed its way to zero. <em>STYX can&rsquo;t.</em></div>
+    <div class="sub">Same goal &mdash; a dollar without a bank. Opposite engineering. Here is exactly where the loop breaks.</div>
+
+    <div class="strip">
+      <div class="panel l">
+        <div class="ph ci">$LUNA <small>the loop that ate $40B</small></div>
+        <div class="steps">
+          <div class="st"><div class="n mo">01</div><div class="t ci">UST slips to $0.98</div><div class="d">Anchor&rsquo;s 20% yield leaves. $2B of UST is dumped in a weekend.</div></div>
+          <div class="st"><div class="n mo">02</div><div class="t ci">Burn 1 UST &rarr; mint $1 of LUNA</div><div class="d">The peg is defended by <b>printing LUNA</b>. No cap. No collateral.</div></div>
+          <div class="st"><div class="n mo">03</div><div class="t ci">LUNA supply explodes</div><div class="d">346M &rarr; <b>6.5 trillion</b> in six days. Each redeem needs more LUNA than the last.</div></div>
+          <div class="st"><div class="n mo">04</div><div class="t ci">Backing hits zero</div><div class="d">The thing backing the dollar was the thing being printed. Both go to $0.</div></div>
+        </div>
+        <div class="brk mo">&#10005; Loop never terminates &mdash; backing is reflexive</div>
+      </div>
+      <div class="panel r">
+        <div class="ph ci">$STYX <small>the loop that stops itself</small></div>
+        <div class="steps">
+          <div class="st"><div class="n mo">01</div><div class="t ci">sUSD slips below $1</div><div class="d">Arbs redeem sUSD at par. Same first step as Terra &mdash; it&rsquo;s what happens next that differs.</div></div>
+          <div class="st"><div class="n mo">02</div><div class="t ci">Redeem pays hard USDG first</div><div class="d">Each sUSD returns <b>CR &times; $1 in USDG reserves</b>. STYX only fills the remaining slice.</div></div>
+          <div class="st"><div class="n mo">03</div><div class="t ci">CR ratchets UP under stress</div><div class="d">Below peg the controller <b>raises</b> the collateral ratio toward 100%. Less STYX printed per redeem, not more.</div></div>
+          <div class="st"><div class="n mo">04</div><div class="t ci">Floor: 55% hard collateral</div><div class="d">CR can never fall below 0.55. Dilution is <b>bounded</b>, so the loop converges instead of exploding.</div></div>
+        </div>
+        <div class="brk mo">&#10003; Loop terminates &mdash; backing is exogenous</div>
+      </div>
+    </div>
+
+    <table>
+      <colgroup><col class="attr"><col><col></colgroup>
+      <tr><th></th><th class="hL">$LUNA / UST<small>Terra &middot; 2022</small></th><th class="hR colR">$STYX / sUSD<small>Robinhood Chain &middot; 2026</small></th></tr>
+      <tr><td class="attr">Peg mechanism<small>what defends the dollar</small></td>
+          <td class="vL">Burn UST, mint LUNA. <b>100% reflexive.</b></td>
+          <td class="vR colR"><b>USDG reserves</b> first, STYX second. Fractional-algorithmic.</td></tr>
+      <tr><td class="attr">Collateral ratio<small>hard assets per dollar</small></td>
+          <td class="vL"><b>0%</b> by design. LFG&rsquo;s BTC was an afterthought, bought in the final weeks.</td>
+          <td class="vR colR"><b>55% &rarr; 100%</b>, adjusts every epoch. Rises when the peg is weak.</td></tr>
+      <tr><td class="attr">Minting<small>how supply grows</small></td>
+          <td class="vL">Unlimited. LUNA supply grew 18,000&times; in a week.</td>
+          <td class="vR colR"><b>Collateral-gated.</b> Mint sUSD = post CR in USDG + burn (1&minus;CR) in STYX.</td></tr>
+      <tr><td class="attr">Redemption<small>what you get back</small></td>
+          <td class="vL">$1 of freshly printed LUNA &mdash; worth less every block.</td>
+          <td class="vR colR"><b>CR in USDG</b> you can withdraw + (1&minus;CR) in STYX. Hard money leads.</td></tr>
+      <tr><td class="attr">Demand engine<small>why anyone holds it</small></td>
+          <td class="vL">Anchor&rsquo;s 20% subsidized yield. Died when the subsidy did.</td>
+          <td class="vR colR"><b>Privacy.</b> Shield sUSD and amount + parties vanish: <span class="redact"></span></td></tr>
+      <tr><td class="attr">Under attack<small>$2B sell-off scenario</small></td>
+          <td class="vL">Printing accelerates. Backing falls with the token it&rsquo;s backed by.</td>
+          <td class="vR colR">Printing <b>decelerates</b>. USDG doesn&rsquo;t care what STYX trades at.</td></tr>
+      <tr class="out"><td class="attr">Outcome</td>
+          <td class="outL">$40B &rarr; $0<small>&minus;99.99% in 6 days</small></td>
+          <td class="outR colR">Bounded by design<small>&#9650; JUST LAUNCHED &middot; DAY ONE</small></td></tr>
+    </table>
+  </div>
+  <div class="foot mo">&#9899; <b>styxrh.xyz</b> &nbsp;&middot;&nbsp; $STYX &nbsp;&middot;&nbsp; private dollars on Robinhood Chain &nbsp;&middot;&nbsp; nothing here is yield. it&rsquo;s plumbing.</div>
+</div></body></html>
