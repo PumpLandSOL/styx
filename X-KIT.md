@@ -331,3 +331,5 @@ STYX is the first and only private algorithmic stablecoin on Robinhood Chain. No
 One of one. $STYX
 
 styxrh.xyz
+
+Graphic: `brand/styx-one-of-one.png` (quadrant map: stable×private, sUSD alone)
