@@ -195,3 +195,5 @@ Anchor's 20% was permanent and became the peg. A yield with an end date can't.
 Also: real USDG deposits to the treasury, verified on-chain. Nothing printed to mint.
 
 styxrh.xyz
+
+Video: `brand/styx-vigil-15s.mp4` (15s, 1280x720, locked 30fps, rendered) — pair with the main Vigil tweet.

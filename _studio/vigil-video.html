@@ -1,0 +1,116 @@
+<!doctype html><html><head><meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;800&family=EB+Garamond:ital@1&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>html,body{margin:0;background:#080706;overflow:hidden}canvas{display:block}</style>
+</head><body><canvas id="c" width="1280" height="720"></canvas>
+<script>
+// THE VIGIL — 15s deterministic hype scene. window.__seek(t) renders frame at time t (seconds).
+const W = 1280, H = 720, cv = document.getElementById('c'), g = cv.getContext('2d');
+const GOLD = '#c9a25e', GOLD2 = '#e9cf95', INK = '#e9ddc6', VERD = '#62a187', VERD2 = '#8fd1b4', RED = '#d8503a', MUT = '#8f8470';
+function rng(seed) { let s = seed >>> 0; return () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; }; }
+const R = rng(11);
+const MOTES = Array.from({ length: 180 }, () => ({ x: R(), y: R(), sp: 0.02 + R() * 0.05, sz: 1 + R() * 2.4, ph: R() * 6.28, dr: (R() - .5) * 0.04, hot: R() }));
+const ease = (k) => k < .5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const seg = (t, a, b) => clamp((t - a) / (b - a), 0, 1);
+const fadeIO = (t, a, b, f = .4) => Math.min(seg(t, a, a + f), 1 - seg(t, b - f, b));
+const flick = (t, s = 1) => 0.85 + 0.15 * Math.sin(t * 13 * s) * Math.sin(t * 7.3 * s + 1) + 0.05 * Math.sin(t * 31 * s);
+
+function bg(t, warm) {
+  g.fillStyle = '#080706'; g.fillRect(0, 0, W, H);
+  const glow = g.createRadialGradient(W / 2, H * 0.62, 20, W / 2, H * 0.62, 620);
+  glow.addColorStop(0, `rgba(233,207,149,${0.22 * warm * flick(t)})`); glow.addColorStop(.4, `rgba(98,161,135,${0.10 * warm})`); glow.addColorStop(1, 'rgba(0,0,0,0)');
+  g.fillStyle = glow; g.fillRect(0, 0, W, H);
+}
+function motes(t, a) {
+  for (const e of MOTES) {
+    const y = ((e.y - t * e.sp) % 1 + 1) % 1; const x = e.x + Math.sin(t * 0.9 + e.ph) * 0.01 + e.dr * (1 - y);
+    const al = a * (0.2 + 0.6 * Math.pow(y, 0.7)) * (0.6 + 0.4 * Math.sin(t * 4 + e.ph));
+    g.fillStyle = e.hot > .5 ? `rgba(143,209,180,${al})` : `rgba(233,207,149,${al})`; g.beginPath(); g.arc(x * W, y * H, e.sz, 0, 6.28); g.fill();
+  }
+}
+function txt(s, x, y, size, color, font = 'Cinzel', weight = 800, align = 'center', ls = 0) {
+  g.font = `${weight} ${size}px '${font}'`; g.fillStyle = color; g.textAlign = align; g.textBaseline = 'middle';
+  g.letterSpacing = ls + 'px'; g.fillText(s, x, y); g.letterSpacing = '0px';
+}
+function vignette() { const v = g.createRadialGradient(W / 2, H / 2, 300, W / 2, H / 2, 820); v.addColorStop(0, 'rgba(0,0,0,0)'); v.addColorStop(1, 'rgba(0,0,0,.6)'); g.fillStyle = v; g.fillRect(0, 0, W, H); }
+function candle(cx, base, t, a, h = 1) {
+  g.save(); g.globalAlpha = a;
+  // wax
+  const wg = g.createLinearGradient(cx - 26, 0, cx + 26, 0); wg.addColorStop(0, '#5a4a2e'); wg.addColorStop(.5, '#a58f6a'); wg.addColorStop(1, '#4a3b22');
+  g.fillStyle = wg; g.fillRect(cx - 26, base - 150 * h, 52, 150 * h);
+  g.fillStyle = '#c9b48a'; g.beginPath(); g.ellipse(cx, base - 150 * h, 26, 7, 0, 0, 6.28); g.fill();
+  g.fillStyle = '#2a2016'; g.fillRect(cx - 1.5, base - 150 * h - 14, 3, 14);
+  // flame
+  const f = flick(t), fy = base - 150 * h - 16, fh = 62 * f, sway = Math.sin(t * 5.1) * 4 + Math.sin(t * 17) * 1.5;
+  g.shadowColor = 'rgba(233,207,149,.9)'; g.shadowBlur = 40 * f;
+  const outer = g.createRadialGradient(cx + sway * .5, fy - fh * .45, 2, cx + sway * .5, fy - fh * .45, fh * .8);
+  outer.addColorStop(0, 'rgba(255,240,200,.95)'); outer.addColorStop(.35, 'rgba(233,180,90,.85)'); outer.addColorStop(.8, 'rgba(216,80,58,.35)'); outer.addColorStop(1, 'rgba(216,80,58,0)');
+  g.fillStyle = outer; g.beginPath(); g.moveTo(cx - 14, fy); g.quadraticCurveTo(cx - 16 + sway, fy - fh * .55, cx + sway, fy - fh); g.quadraticCurveTo(cx + 16 + sway, fy - fh * .55, cx + 14, fy); g.closePath(); g.fill();
+  g.shadowBlur = 0; g.fillStyle = 'rgba(98,161,135,.85)'; g.beginPath(); g.ellipse(cx + sway * .3, fy - 8, 5, 12, 0, 0, 6.28); g.fill();
+  g.restore();
+}
+function ring(cx, cy, r, k, a) {   // countdown ring, k = fraction remaining
+  g.save(); g.globalAlpha = a; g.lineWidth = 10; g.strokeStyle = 'rgba(201,162,94,.15)'; g.beginPath(); g.arc(cx, cy, r, 0, 6.28); g.stroke();
+  g.strokeStyle = VERD2; g.shadowColor = 'rgba(143,209,180,.7)'; g.shadowBlur = 24; g.beginPath(); g.arc(cx, cy, r, -Math.PI / 2, -Math.PI / 2 + 6.283 * k); g.stroke(); g.restore();
+}
+function line(y, a) { g.save(); g.globalAlpha = a; g.strokeStyle = 'rgba(201,162,94,.35)'; g.lineWidth = 1; g.beginPath(); g.moveTo(W / 2 - 220, y); g.lineTo(W / 2 + 220, y); g.stroke(); g.restore(); }
+function num(n) { return Math.floor(n).toLocaleString('en-US'); }
+
+window.__seek = function (t) {
+  const warm = t < 13.6 ? seg(t, 0, 1.2) : 1 - seg(t, 13.6, 15);
+  bg(t, warm); motes(t, 0.8 * warm); vignette();
+
+  // ── 0–2.6  candle lights · "A YIELD THAT ENDS."
+  if (t < 2.7) {
+    const a = fadeIO(t, 0.2, 2.7, .4); candle(W / 2, 640, t, seg(t, 0, .8));
+    g.globalAlpha = a; txt('A YIELD THAT ENDS.', W / 2, 200, 66, INK, 'Cinzel', 800, 'center', 6);
+    txt('is a promotion, not a foundation', W / 2, 262, 26, MUT, 'EB Garamond', 400); g.globalAlpha = 1;
+  }
+  // ── 2.6–5.2  THE VIGIL
+  if (t >= 2.6 && t < 5.3) {
+    const a = fadeIO(t, 2.6, 5.3, .35); const k = ease(seg(t, 2.6, 3.4)); candle(W / 2, 640, t, a, 0.9);
+    g.save(); g.globalAlpha = a; g.translate(W / 2, 0); g.scale(1.1 - .1 * k, 1.1 - .1 * k);
+    g.shadowColor = 'rgba(143,209,180,.6)'; g.shadowBlur = 40;
+    txt('THE VIGIL', 0, 190, 126, VERD2, 'Cinzel', 800, 'center', 16); g.shadowBlur = 0;
+    txt('stake sUSD  ·  40% APY  ·  paid in $STYX', 0, 290, 30, GOLD2, 'EB Garamond', 400);
+    g.restore();
+  }
+  // ── 5.2–8.4  30 DAYS countdown ring
+  if (t >= 5.2 && t < 8.5) {
+    const a = fadeIO(t, 5.2, 8.5, .35); const k = ease(seg(t, 5.5, 8.0)); const days = 30 - 30 * k;
+    ring(W / 2, 330, 150, 1 - k, a);
+    g.globalAlpha = a; txt(num(Math.ceil(days)), W / 2, 318, 110, INK, 'Cinzel', 800, 'center', 2);
+    txt('DAYS', W / 2, 392, 24, MUT, 'JetBrains Mono', 500, 'center', 8);
+    txt(k < .97 ? 'open now  →  Oct 11' : 'then it ends.', W / 2, 560, 40, k < .97 ? GOLD2 : RED, 'Cinzel', 800, 'center', 4);
+    txt('a fixed pool of $STYX, set aside up front · when it is gone, it is gone', W / 2, 620, 24, MUT, 'EB Garamond', 400);
+    g.globalAlpha = 1;
+  }
+  // ── 8.4–11.5  three reveals
+  if (t >= 8.4 && t < 11.5) {
+    const a = fadeIO(t, 8.4, 11.5, .3);
+    const rows = [['REAL USDG DEPOSITS', 'every dollar → the treasury, verified on-chain'], ['NOTHING PRINTED TO MINT', 'the algo slice buys $STYX at market and burns it'], ['NO HOT KEY', 'withdrawals paid by hand from cold storage']];
+    g.globalAlpha = a; txt('ALSO LIVE', W / 2, 120, 22, VERD, 'JetBrains Mono', 500, 'center', 8); g.globalAlpha = 1;
+    rows.forEach((r, i) => {
+      const ka = seg(t, 8.7 + i * .7, 9.1 + i * .7); const y = 230 + i * 150;
+      g.globalAlpha = a * ka; txt(r[0], W / 2, y + (1 - ease(ka)) * 14, 44, INK, 'Cinzel', 800, 'center', 4);
+      txt(r[1], W / 2, y + 48, 25, MUT, 'EB Garamond', 400); if (i < 2) line(y + 88, a * ka); g.globalAlpha = 1;
+    });
+  }
+  // ── 11.5–13.7  the Anchor line
+  if (t >= 11.5 && t < 13.8) {
+    const a = fadeIO(t, 11.5, 13.8, .3); const k = seg(t, 12.1, 12.7);
+    g.globalAlpha = a; txt('ANCHOR NEVER ENDED.', W / 2, H / 2 - 60, 62, MUT, 'Cinzel', 800, 'center', 4);
+    g.globalAlpha = a * k; g.shadowColor = 'rgba(143,209,180,.6)'; g.shadowBlur = 30; txt('THAT WAS THE PROBLEM.', W / 2, H / 2 + 40, 62, VERD2, 'Cinzel', 800, 'center', 4); g.shadowBlur = 0;
+    g.globalAlpha = a; txt('the peg is held by USDG collateral, not by the reward', W / 2, H / 2 + 125, 24, MUT, 'EB Garamond', 400); g.globalAlpha = 1;
+  }
+  // ── 13.6–15  outro
+  if (t >= 13.6) {
+    const a = seg(t, 13.6, 14.1); candle(W / 2, 520, t, a, 0.6);
+    g.globalAlpha = a; txt('STYX', W / 2, H / 2 + 100, 90, GOLD, 'Cinzel', 800, 'center', 22);
+    txt('styxrh.xyz  ·  $STYX  ·  the vigil is open', W / 2, H / 2 + 170, 22, MUT, 'JetBrains Mono', 500, 'center', 2); g.globalAlpha = 1;
+  }
+  return true;
+};
+window.__ready = document.fonts.ready.then(() => { __seek(0); return true; });
+</script></body></html>
