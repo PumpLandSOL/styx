@@ -299,13 +299,13 @@ styxrh.xyz/?ref=you
 ## BONDS + VIGIL BOOST
 Video: `brand/styx-bonds-10s.mp4` (10s, rendered) · deposit link: styxrh.xyz/?tab=bond
 
-### Tweet (358 chars)
+### Tweet (276 chars)
 $STYX is on sale. Bonds are live.
 
-Deposit USDG → take $STYX at 20% below market, vested over 5 days. Your USDG goes straight into the sUSD reserve and mints nothing. Every bond makes the dollar more collateralized.
+Deposit USDG → take $STYX at 20% below market, vested 5 days. Your USDG goes straight into the sUSD reserve. Nothing minted.
 
-And the Vigil is boosted: 40% → 100% APY on staked sUSD this week.
+Vigil boosted: 40% → 100% APY on staked sUSD this week.
 
-Daily capacity is capped. First come, first served.
+Daily cap. First come, first served.
 
 styxrh.xyz/?tab=bond
