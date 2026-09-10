@@ -309,3 +309,25 @@ Vigil boosted: 40% → 100% APY on staked sUSD this week.
 Daily cap. First come, first served.
 
 styxrh.xyz/?tab=bond
+
+---
+
+## "Privacy is the future" positioning tweets
+
+### Bold (267)
+Privacy is the future. Everyone says it. Nobody builds the dollar.
+
+STYX stands alone: the only algorithmic private stablecoin on Robinhood Chain, and the only one anywhere on-chain that ships with a hard collateral floor.
+
+A dollar you carry unseen. $STYX
+
+styxrh.xyz
+
+### Unassailable (279)
+Privacy is the future. Everyone says it. Nobody builds the dollar.
+
+STYX is the first and only private algorithmic stablecoin on Robinhood Chain. Not a coin you hide. A dollar you hide, with a 55% hard floor no death spiral can break.
+
+One of one. $STYX
+
+styxrh.xyz
