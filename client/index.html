@@ -253,6 +253,16 @@ footer{text-align:center;color:var(--mut);font-style:italic;font-size:14px;paddi
     <div class="r3"><div class="k">The Seal · selective disclosure</div><h3>Prove it to one person. Hide it from everyone else.</h3><p>Generate a <b>view key</b> for your wallet. Whoever holds it can read your shielded balance and history on a sealed statement page. It <b>can never spend</b>. Give it to an accountant, a partner, a regulator — and to nobody else.</p></div>
   </div>
 
+  <!-- CHARON'S CUT -->
+  <div class="sec" id="ferry"><span>Charon&rsquo;s cut · the ferryman program<span class="tmp" style="background:var(--gold)">NEW</span></span></div>
+  <div class="rite3">
+    <div class="r3"><div class="k">how it works</div><h3>Bring a soul across. Earn from every crossing they make. Forever.</h3><p>Anyone who claims your <b>Note</b>, or arrives through your <b>ferry link</b>, becomes your soul. From then on <b>20% of every toll they ever pay</b> — shield, send, unshield, redeem — is credited to you in sUSD. Not once. Every time. The Pyre takes the other 80%.</p>
+      <div class="linkbox" id="ferrybox" style="display:none"><code id="ferrylink"></code><button id="ferrycopy">Copy</button></div>
+      <div class="kv" style="margin-top:10px"><span>your souls</span><b id="f-souls">—</b></div><div class="kv"><span>earned from their tolls</span><b id="f-earned">—</b></div></div>
+    <div class="r3"><div class="k">the ferrymen · top ten</div><div class="led" id="ferryboard" style="margin-top:10px"></div>
+      <p style="margin-top:10px;font-size:13px">Addresses are redacted. Souls are counted, never named.</p></div>
+  </div>
+
   <!-- THE VIGIL -->
   <div class="sec" id="vigil"><span>The vigil · temporary staking<span class="tmp">30 DAYS</span></span></div>
   <div class="vig">
@@ -308,6 +318,7 @@ footer{text-align:center;color:var(--mut);font-style:italic;font-size:14px;paddi
     <details><summary>What can an observer see when I send unseen?</summary><div class="a">A <b>nullifier</b> spent and a <b>new commitment</b> added. No amount, no sender, no recipient. The recipient decrypts their note with their key; nobody else can.</div></details>
     <details><summary>Can I get back to public sUSD?</summary><div class="a">Yes. Unshield returns a private note to your public balance at any time, and Redeem burns public sUSD for your USDG collateral plus the $STYX share. <i>Private when you choose, public when you choose.</i></div></details>
     <details><summary>What is $STYX for?</summary><div class="a">$STYX is the share token of the protocol. A small amount is <b>burned on every mint</b> and minted back on every redeem, so demand for sUSD flows into $STYX. It is also the governance token for the rites ahead.</div></details>
+    <details><summary>What is Charon&rsquo;s Cut?</summary><div class="a">A referral engine built into the Note. When someone claims your Note or connects through your ferry link (<b>styxrh.xyz/?ref=your-address</b>) for the first time, they are bound to you. <b>20% of every toll they pay from then on</b> is credited to your public sUSD balance, forever. The remaining 80% still goes to The Pyre. One ferryman per soul, set once, never changed.</div></details>
     <details><summary>What is a Note?</summary><div class="a">A pay link. You lock shielded sUSD behind a random secret and share the link. Whoever opens it connects a wallet and the sUSD lands in <b>their</b> shielded balance. The secret is only in the link fragment; the server stores a hash of it, and the ledger shows one nullifier and one commitment, indistinguishable from a private send. <i>One claim per note.</i></div></details>
     <details><summary>What is the Seal?</summary><div class="a">A <b>view key</b>: an HMAC over your address with a server salt, encoded with your address so the statement page can verify it. It reads your shielded balance and history. It has <b>no spending power</b>. This is the selective-disclosure model privacy coins use for audits: you choose who sees, and only they see.</div></details>
     <details><summary>Is my USDG actually deposited?</summary><div class="a">Yes. Minting starts with a real <b>USDG transfer on Robinhood Chain to the treasury</b>. The server reads the transaction receipt, checks the Transfer log is from your wallet to the treasury, and only then credits your ledger. Every deposited dollar sits in the treasury address you can see on the explorer. <i>Nothing on this site is paper any more.</i></div></details>

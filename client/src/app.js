@@ -9,6 +9,7 @@ function toast(m, err) { const t = $('toast'); t.textContent = m; t.className = 
 let M = null, A = null, tab = 'mint', reveal = false;
 const dur = (ms) => { const d = Math.floor(ms / 864e5), hh = Math.floor(ms % 864e5 / 36e5), mm = Math.floor(ms % 36e5 / 6e4); return d > 0 ? d + 'd ' + hh + 'h' : hh + 'h ' + mm + 'm'; };
 let wallet = localStorage.getItem('styx_w') || '';
+let refParam = ''; try { const q = new URLSearchParams(location.search); if (/^0x[a-fA-F0-9]{40}$/.test(q.get('ref') || '')) { refParam = q.get('ref').toLowerCase(); localStorage.setItem('styx_ref', refParam); } else refParam = localStorage.getItem('styx_ref') || ''; } catch (e) {}
 
 function setConnected() { const b = $('connect'); b.textContent = wallet ? wallet.slice(0, 4) + '…' + wallet.slice(-4) : 'Connect'; }
 const CHAIN_HEX = '0x1237';
@@ -53,6 +54,9 @@ function renderMetrics() {
     $('v-pool').textContent = big(V.poolLeft) + ' STYX'; $('v-ends').textContent = V.startsIn > 0 ? 'opens in ' + dur(V.startsIn) : V.live ? dur(V.endsIn) : 'ended'; $('v-n').textContent = fmt(V.stakers, 0);
   }
   if (M.chain && M.chain.ok) $('tr-chain').textContent = '· on-chain: ' + fmt(M.chain.treasuryUsdg, 2) + ' USDG · ' + big(M.chain.treasuryStyx) + ' STYX';
+  if (M.ferry) { const Fm = M.ferry;
+    $('ferryboard').innerHTML = Fm.board.map((b, i) => `<div class="r"><span class="ty">#${i + 1}</span><span class="sg">${b.who}</span><span class="am">${b.souls} soul${b.souls === 1 ? '' : 's'} · ${fmt(b.earned, 2)} sUSD</span></div>`).join('') || '<div class="r"><span class="sg">no souls carried yet — write the first Note</span></div>';
+  }
   if (M.pyre) { const P = M.pyre;
     $('p-styx').textContent = big(P.burnedStyx) + ' STYX'; $('p-usd').textContent = '$' + big(P.burnedUsd);
     $('p-toll').textContent = '$' + fmt(P.tollUsd, 2) + ' / $' + P.minUsd; $('p-ep').textContent = fmt(P.epochs, 0);
@@ -67,8 +71,10 @@ function renderMetrics() {
 }
 
 // ---------- account ----------
-async function loadAccount() { if (!wallet) { A = null; renderAccount(); return; } A = await api('/api/account', { wallet }); if (A.error) { toast(A.error, true); A = null; } renderAccount(); }
+async function loadAccount() { if (!wallet) { A = null; renderAccount(); return; } A = await api('/api/account', { wallet, ref: refParam || undefined }); if (A.error) { toast(A.error, true); A = null; } renderAccount(); }
 function renderAccount() {
+  if (wallet) { $('ferrybox').style.display = 'flex'; $('ferrylink').textContent = location.origin + '/?ref=' + wallet; } else $('ferrybox').style.display = 'none';
+  $('f-souls').textContent = A ? fmt(A.souls, 0) : '—'; $('f-earned').textContent = A ? fmt(A.earned, 2) + ' sUSD' : '—';
   $('b-usdg').textContent = A ? fmt(A.usdg, 0) : '—';
   $('b-styx').textContent = A ? fmt(A.styx, 1) : '—';
   $('b-susd').textContent = A ? fmt(A.susd, 2) : '—';
@@ -185,6 +191,7 @@ async function doAct(url, payload, msg) {
   if (r.error) return toast(r.error, true);
   A = r; renderAccount(); loadMetrics(); toast(msg(r));
 }
+$('ferrycopy').onclick = () => { navigator.clipboard.writeText(location.origin + '/?ref=' + wallet); toast('ferry link copied'); };
 $('ca-copy').onclick = () => { navigator.clipboard.writeText(M.mint); toast('copied'); };
 $('tr-copy').onclick = () => { navigator.clipboard.writeText(M.treasury); toast('copied'); };
 

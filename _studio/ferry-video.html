@@ -1,0 +1,50 @@
+<!doctype html><html><head><meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;800&family=EB+Garamond:ital@1&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>html,body{margin:0;background:#080706;overflow:hidden}canvas{display:block}</style>
+</head><body><canvas id="c" width="1280" height="720"></canvas>
+<script>
+// CHARON'S CUT — 10s deterministic hype: one ferryman, souls crossing the river, coins flowing back forever.
+const W = 1280, H = 720, cv = document.getElementById('c'), g = cv.getContext('2d');
+const GOLD = '#c9a25e', GOLD2 = '#e9cf95', INK = '#e9ddc6', VERD = '#62a187', VERD2 = '#8fd1b4', RED = '#d8503a', MUT = '#8f8470';
+function rng(seed) { let s = seed >>> 0; return () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; }; }
+const R = rng(31);
+const MOTES = Array.from({ length: 140 }, () => ({ x: R(), y: R(), sp: 0.02 + R() * 0.05, sz: 1 + R() * 2.2, ph: R() * 6.28, hot: R() }));
+const SOULS = Array.from({ length: 9 }, (_, i) => ({ t0: 2.4 + i * 0.28, y: 300 + (R() - .5) * 200, sp: 0.9 + R() * 0.3, ph: R() * 6.28 }));
+const ease = (k) => k < .5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const seg = (t, a, b) => clamp((t - a) / (b - a), 0, 1);
+const fadeIO = (t, a, b, f = .35) => Math.min(seg(t, a, a + f), 1 - seg(t, b - f, b));
+function bg(t) { g.fillStyle = '#080706'; g.fillRect(0, 0, W, H); const gl = g.createRadialGradient(W / 2, H / 2, 40, W / 2, H / 2, 760); gl.addColorStop(0, 'rgba(201,162,94,.10)'); gl.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = gl; g.fillRect(0, 0, W, H); }
+function motes(t, a) { for (const e of MOTES) { const y = ((e.y - t * e.sp) % 1 + 1) % 1; g.fillStyle = e.hot > .5 ? `rgba(143,209,180,${a * .6})` : `rgba(233,207,149,${a * .6})`; g.beginPath(); g.arc((e.x + Math.sin(t + e.ph) * .01) * W, y * H, e.sz, 0, 6.28); g.fill(); } }
+function txt(s, x, y, size, color, font = 'Cinzel', weight = 800, align = 'center', ls = 0) { g.font = `${weight} ${size}px '${font}'`; g.fillStyle = color; g.textAlign = align; g.textBaseline = 'middle'; g.letterSpacing = ls + 'px'; g.fillText(s, x, y); g.letterSpacing = '0px'; }
+function vignette() { const v = g.createRadialGradient(W / 2, H / 2, 300, W / 2, H / 2, 820); v.addColorStop(0, 'rgba(0,0,0,0)'); v.addColorStop(1, 'rgba(0,0,0,.6)'); g.fillStyle = v; g.fillRect(0, 0, W, H); }
+function river(t, a) { g.save(); g.globalAlpha = a; for (let i = 0; i < 7; i++) { const y = 250 + i * 40; g.strokeStyle = `rgba(98,161,135,${.08 + .06 * Math.sin(t * 2 + i)})`; g.lineWidth = 2; g.beginPath(); for (let x = 0; x <= W; x += 16) g.lineTo(x, y + Math.sin(x * .012 + t * 2.2 + i) * 8); g.stroke(); } g.restore(); }
+function soul(x, y, a, col) { g.save(); g.globalAlpha = a; g.shadowColor = col; g.shadowBlur = 18; g.fillStyle = col; g.beginPath(); g.arc(x, y, 7, 0, 6.28); g.fill(); g.restore(); }
+function coin(x, y, a, r = 9) { g.save(); g.globalAlpha = a; g.shadowColor = 'rgba(233,207,149,.8)'; g.shadowBlur = 14; g.fillStyle = GOLD2; g.beginPath(); g.arc(x, y, r, 0, 6.28); g.fill(); g.restore(); }
+function ferryman(x, y, a) { g.save(); g.globalAlpha = a; g.strokeStyle = GOLD; g.lineWidth = 4; g.shadowColor = 'rgba(201,162,94,.6)'; g.shadowBlur = 20; g.beginPath(); g.moveTo(x - 60, y + 20); g.quadraticCurveTo(x, y + 44, x + 60, y + 20); g.lineTo(x + 70, y + 2); g.lineTo(x - 70, y + 2); g.closePath(); g.stroke(); g.beginPath(); g.moveTo(x + 20, y); g.lineTo(x + 30, y - 70); g.stroke(); g.fillStyle = GOLD2; g.beginPath(); g.arc(x - 10, y - 28, 10, 0, 6.28); g.fill(); g.fillRect(x - 18, y - 18, 16, 20); g.restore(); }
+function num(n) { return Math.floor(n).toLocaleString('en-US'); }
+
+window.__seek = function (t) {
+  bg(t); motes(t, t < 9 ? .8 : .8 * (1 - seg(t, 9, 10))); vignette();
+  // 0–2.2 hook
+  if (t < 2.3) { const a = fadeIO(t, .2, 2.3, .35); g.globalAlpha = a; txt('EVERY SOUL YOU CARRY', W / 2, H / 2 - 40, 70, INK, 'Cinzel', 800, 'center', 6); txt('pays you. every crossing. forever.', W / 2, H / 2 + 40, 30, GOLD2, 'EB Garamond', 400); g.globalAlpha = 1; }
+  // 2.2–6.2 the river: souls cross toward the ferryman, coins flow back
+  if (t >= 2.2 && t < 6.3) {
+    const a = fadeIO(t, 2.2, 6.3, .3); river(t, a); ferryman(1040, 330, a);
+    g.globalAlpha = a; txt("CHARON'S CUT", W / 2, 110, 64, GOLD2, 'Cinzel', 800, 'center', 12); txt('claim my Note or cross through my ferry link → you are my soul', W / 2, 170, 24, MUT, 'EB Garamond', 400); g.globalAlpha = 1;
+    let earned = 0;
+    for (const s of SOULS) { const k = seg(t, s.t0, s.t0 + 1.6 / s.sp); if (k <= 0) continue; const x = 160 + ease(k) * 800; const y = s.y + Math.sin(t * 3 + s.ph) * 6; soul(x, y, a * (k < 1 ? 1 : .8), k < 1 ? VERD2 : GOLD2);
+      // once across, coins flow back to the ferryman repeatedly
+      if (k >= 1) { const cyc = ((t - (s.t0 + 1.6 / s.sp)) * 1.3) % 1; coin(960 + cyc * 70, y + (330 - y) * cyc, a * (1 - cyc * .3), 6); earned += 0.024 * Math.floor((t - (s.t0 + 1.6 / s.sp)) * 1.3 + 1); } }
+    g.globalAlpha = a; txt('20% OF EVERY TOLL', 1040, 470, 20, GOLD, 'JetBrains Mono', 500, 'center', 5); txt('+' + earned.toFixed(3) + ' sUSD', 1040, 520, 44, GOLD2, 'Cinzel', 800, 'center', 2);
+    txt('shield · send · unshield · redeem', 1040, 570, 18, MUT, 'JetBrains Mono', 500, 'center', 2); txt('souls', 180, 470, 20, VERD, 'JetBrains Mono', 500, 'center', 5); txt(num(SOULS.filter((s) => t >= s.t0 + 1.6 / s.sp).length), 180, 520, 44, VERD2, 'Cinzel', 800, 'center'); g.globalAlpha = 1;
+  }
+  // 6.2–8.4 the math
+  if (t >= 6.2 && t < 8.5) { const a = fadeIO(t, 6.2, 8.5, .3); g.globalAlpha = a; txt('NOT A ONE-TIME BONUS.', W / 2, H / 2 - 70, 58, MUT, 'Cinzel', 800, 'center', 4); g.globalAlpha = a * seg(t, 6.8, 7.3); g.shadowColor = 'rgba(233,207,149,.6)'; g.shadowBlur = 30; txt('A CUT OF THEIR TOLLS FOREVER.', W / 2, H / 2 + 20, 58, GOLD2, 'Cinzel', 800, 'center', 4); g.shadowBlur = 0; g.globalAlpha = a; txt('one ferryman per soul · set once · never changed · the pyre takes the other 80%', W / 2, H / 2 + 110, 22, MUT, 'EB Garamond', 400); g.globalAlpha = 1; }
+  // 8.4–10 outro
+  if (t >= 8.4) { const a = seg(t, 8.4, 8.8); g.globalAlpha = a; txt('STYX', W / 2, H / 2 - 10, 96, GOLD, 'Cinzel', 800, 'center', 22); txt('styxrh.xyz/?ref=YOU  ·  $STYX  ·  become a ferryman', W / 2, H / 2 + 80, 22, MUT, 'JetBrains Mono', 500, 'center', 2); g.globalAlpha = 1; }
+  return true;
+};
+window.__ready = document.fonts.ready.then(() => { __seek(0); return true; });
+</script></body></html>

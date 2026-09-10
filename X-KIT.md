@@ -277,3 +277,18 @@ sUSD is the private dollar. Shielded, pegged, 55% hard USDG floor, pay anyone by
 $STYX is $132K today. 1% of ZEC's cap is $199M.
 
 styxrh.xyz
+
+
+---
+
+## CHARON'S CUT — referral engine
+Video: `brand/styx-ferry-10s.mp4` (10s, rendered)
+
+### Tweet (270 chars)
+Charon's Cut is live on $STYX.
+
+Anyone who claims your Note or crosses through your ferry link is your soul. You earn 20% of every toll they ever pay. Shield, send, unshield, redeem. Forever.
+
+Not a one-time bonus. A cut of their crossings for life.
+
+styxrh.xyz/?ref=you

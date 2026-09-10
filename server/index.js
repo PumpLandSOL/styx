@@ -43,7 +43,16 @@ const TOLL = { shield: 0.003, send: 0.003, unshield: 0.003, redeem: 0.005 }; // 
 const PYRE_MIN_USD = 25;
 if (!db.pyre) db.pyre = { tollUsd: 0, burnedStyx: 0, burnedUsd: 0, epochs: 0, burns: [] };
 const pyre = db.pyre;
-function toll(kind, amt) { const f = amt * TOLL[kind]; pyre.tollUsd += f; return amt - f; }
+const FERRY_CUT = +(process.env.FERRY_CUT || 0.20);   // share of every toll that goes to the wallet who brought the payer across
+function toll(kind, amt, w) {
+  const f = amt * TOLL[kind]; let cut = 0;
+  if (w && w.ref && db.wallets[w.ref]) { cut = f * FERRY_CUT; const fm = db.wallets[w.ref]; fm.susd += cut; fm.earned = (fm.earned || 0) + cut; db.ferry.paid += cut; }
+  pyre.tollUsd += f - cut; return amt - f;
+}
+if (!db.ferry) db.ferry = { paid: 0, souls: 0 };
+function bind(w, addr, refAddr) { refAddr = (refAddr || '').toLowerCase(); if (w.ref || !isWallet(refAddr) || refAddr === addr) return false; const fm = W(refAddr); w.ref = refAddr; w.refTs = Date.now(); fm.souls = (fm.souls || 0) + 1; db.ferry.souls++; hist(fm, { type: 'soul', amt: 0, to: addr }); return true; }
+const redact = (addr) => addr.slice(0, 4) + '████' + addr.slice(-4);
+function ferrymen() { return Object.entries(db.wallets).filter(([, x]) => (x.souls || 0) > 0).map(([addr, x]) => ({ who: redact(addr), souls: x.souls || 0, earned: x.earned || 0 })).sort((p, q) => q.souls - p.souls || q.earned - p.earned).slice(0, 10); }
 function pyreBurn(now) {
   if (pyre.tollUsd < PYRE_MIN_USD) return;
   const usd = pyre.tollUsd; const px = Math.max(0.0001, db.styxPrice); const styx = usd / px;
@@ -180,14 +189,14 @@ function metrics() {
     cr: db.cr, collateralUsd: db.collateralUsd, backingRatio: backing,
     styxPrice: db.styxPrice, styxSupply: db.styxSupply, styxMarketCap: db.styxPrice * db.styxSupply,
     minDeposit: MIN_DEPOSIT, chain: { ok: CHAIN.ok, block: CHAIN.block, treasuryUsdg: CHAIN.treasuryUsdg, treasuryStyx: CHAIN.treasuryStyx, lastRead: CHAIN.lastRead, usdg: USDG.addr, rpc: RPCS[0] },
-    deposits: { usdg: db.treasuryIn.usdg, n: db.treasuryIn.n }, notes: { created: Object.keys(db.links).length, open: Object.values(db.links).filter((L) => !L.claimed).length, claimed: Object.values(db.links).filter((L) => L.claimed).length }, queue: { open: db.queue.filter((q) => q.status === 'queued').length, openUsd: db.queue.filter((q) => q.status === 'queued').reduce((a, q) => a + q.amt, 0), paid: db.queue.filter((q) => q.status === 'paid').length },
+    deposits: { usdg: db.treasuryIn.usdg, n: db.treasuryIn.n }, ferry: { cut: FERRY_CUT, souls: db.ferry.souls, paid: db.ferry.paid, board: ferrymen() }, notes: { created: Object.keys(db.links).length, open: Object.values(db.links).filter((L) => !L.claimed).length, claimed: Object.values(db.links).filter((L) => L.claimed).length }, queue: { open: db.queue.filter((q) => q.status === 'queued').length, openUsd: db.queue.filter((q) => q.status === 'queued').reduce((a, q) => a + q.amt, 0), paid: db.queue.filter((q) => q.status === 'paid').length },
     vigil: { ...VIGIL, live: vigilLive(Date.now()), staked: db.vigil.staked, stakers: db.vigil.stakers, paidStyx: db.vigil.paidStyx, paidUsd: db.vigil.paidUsd, poolLeft: Math.max(0, VIGIL.pool - db.vigil.paidStyx), poolLeftUsd: Math.max(0, VIGIL.pool - db.vigil.paidStyx) * db.styxPrice, endsIn: Math.max(0, VIGIL.end - Date.now()), startsIn: Math.max(0, VIGIL.start - Date.now()) },
     pyre: { tollUsd: pyre.tollUsd, burnedStyx: pyre.burnedStyx, burnedUsd: pyre.burnedUsd, epochs: pyre.epochs, minUsd: PYRE_MIN_USD, bps: { shield: 30, send: 30, unshield: 30, redeem: 50 }, burns: pyre.burns.slice(0, 8).map((b) => ({ id: b.id.slice(0, 8) + '…' + b.id.slice(-4), usd: b.usd, styx: b.styx, px: b.px, ts: b.ts, epoch: b.epoch })) },
     shielded: { totalValue: sh.totalValue, notes: sh.notes, nullifiers: sh.nullifiers, txCount: sh.txCount, root: sh.root },
     feed: sh.feed.slice(0, 10).map((t) => ({ sig: t.sig.slice(0, 6) + '…' + t.sig.slice(-4), type: t.type, publicAmount: t.publicAmount || null, ts: t.ts })),
   };
 }
-function account(addr) { const w = W(addr); const now = Date.now(); return { wallet: addr, usdg: w.usdg, styx: w.styx, susd: w.susd, priv: w.priv, deposited: w.deposited || 0, vigil: vigilView(w, now), queue: db.queue.filter((q) => q.wallet === addr.toLowerCase()).slice(0, 10) }; }
+function account(addr) { const w = W(addr); const now = Date.now(); return { wallet: addr, usdg: w.usdg, styx: w.styx, susd: w.susd, priv: w.priv, deposited: w.deposited || 0, ref: w.ref || null, souls: w.souls || 0, earned: w.earned || 0, vigil: vigilView(w, now), queue: db.queue.filter((q) => q.wallet === addr.toLowerCase()).slice(0, 10) }; }
 
 // ---------- http ----------
 const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml', '.png': 'image/png' };
@@ -203,7 +212,7 @@ http.createServer(async (req, res) => {
     const d = await body(req);
     if (u === '/api/note/peek') { const L = db.links[linkId(String(d.secret || ''))]; if (!L) return json(res, 200, { error: 'no such note' }); return json(res, 200, { amt: L.amt, memo: L.memo, claimed: L.claimed, ts: L.ts }); }
     if (u === '/api/view') { const addr = walletOfViewKey(String(d.key || '')); if (!addr) return json(res, 200, { error: 'invalid view key' }); const v = W(addr); return json(res, 200, { ok: true, wallet: addr, priv: v.priv, staked: v.stake || 0, hist: (v.hist || []).slice(0, 100), notesOpen: Object.values(db.links).filter((L) => !L.claimed).length, root: sh.root, t: Date.now() }); }
-    if (u === '/api/account') { if (!isWallet(d.wallet || '')) return json(res, 200, { error: 'paste a valid Robinhood Chain address' }); return json(res, 200, account(d.wallet)); }
+    if (u === '/api/account') { if (!isWallet(d.wallet || '')) return json(res, 200, { error: 'paste a valid Robinhood Chain address' }); const aw = W(d.wallet); if (d.ref) { const fresh = !(aw.deposited || 0) && !(aw.hist || []).length; if (fresh && bind(aw, d.wallet.toLowerCase(), d.ref)) save(); } return json(res, 200, account(d.wallet)); }
     if (!isWallet(d.wallet || '')) return json(res, 200, { error: 'connect a wallet first' });
     const w = W(d.wallet);
 
@@ -233,7 +242,7 @@ http.createServer(async (req, res) => {
       return json(res, 200, { ok: true, staked: x, ...account(d.wallet) });
     }
     if (u === '/api/unstake') { const now = Date.now(); accrue(w, now); const x = num(d.amount, w.stake || 0); if (!x) return json(res, 200, { error: 'nothing staked' });
-      const xn = toll('unshield', x); w.stake -= x; w.susd += xn; db.vigil.staked = Math.max(0, db.vigil.staked - x); if (w.stake <= 0) { w.stake = 0; db.vigil.stakers = Math.max(0, db.vigil.stakers - 1); } save();
+      const xn = toll('unshield', x, w); w.stake -= x; w.susd += xn; db.vigil.staked = Math.max(0, db.vigil.staked - x); if (w.stake <= 0) { w.stake = 0; db.vigil.stakers = Math.max(0, db.vigil.stakers - 1); } save();
       return json(res, 200, { ok: true, unstaked: xn, toll: x - xn, ...account(d.wallet) });
     }
     if (u === '/api/claim') { const now = Date.now(); accrue(w, now); const usd = w.stakeAcc || 0; if (usd < 0.01) return json(res, 200, { error: 'nothing to claim yet' });
@@ -243,42 +252,42 @@ http.createServer(async (req, res) => {
     }
     if (u === '/api/redeem') { // sUSD -> collateral + STYX
       const r = num(d.amount, w.susd); if (!r) return json(res, 200, { error: 'nothing to redeem' });
-      const rn = toll('redeem', r); const outUsdg = rn * db.cr; const mintStyx = (rn * (1 - db.cr)) / db.styxPrice;
+      const rn = toll('redeem', r, w); const outUsdg = rn * db.cr; const mintStyx = (rn * (1 - db.cr)) / db.styxPrice;
       w.susd -= r; w.usdg += outUsdg; w.styx += mintStyx; db.susdSupply = Math.max(0, db.susdSupply - r); db.collateralUsd = Math.max(0, db.collateralUsd - outUsdg); db.styxSupply += mintStyx; save();
       return json(res, 200, { ok: true, redeemed: r, gotUsdg: outUsdg, gotStyx: mintStyx, ...account(d.wallet) });
     }
     if (u === '/api/note/create') { // lock shielded sUSD behind a secret link
       const x = num(d.amount, w.priv); if (!x) return json(res, 200, { error: 'not enough private balance' }); if (x < 1) return json(res, 200, { error: 'minimum 1 sUSD' });
-      const secret = base58(randomBytes(16)); const id = linkId(secret); const xn = toll('send', x);
+      const secret = base58(randomBytes(16)); const id = linkId(secret); const xn = toll('send', x, w);
       w.priv -= x; sh.nullifiers++; const { C, note } = shieldNote(xn, shKeys[randomInt(0, shKeys.length)].pub);
-      db.links[id] = { amt: xn, memo: String(d.memo || '').slice(0, 80), ts: Date.now(), claimed: false, from: base58(sha('from|' + d.wallet.toLowerCase() + '|' + secret)) };
+      db.links[id] = { amt: xn, memo: String(d.memo || '').slice(0, 80), ts: Date.now(), claimed: false, by: d.wallet.toLowerCase(), from: base58(sha('from|' + d.wallet.toLowerCase() + '|' + secret)) };
       pushShTx({ sig: base58(randomBytes(32)), type: 'private', nullifier: nullifierOf('n', sh.notes), commitment: C, note, proof: simProof(), ts: Date.now() });
       hist(w, { type: 'note', amt: x, id }); save();
       return json(res, 200, { ok: true, secret, id, amt: xn, toll: x - xn, ...account(d.wallet) });
     }
     if (u === '/api/note/claim') { // anyone holding the secret claims it into THEIR shielded balance
       const L = db.links[linkId(String(d.secret || ''))]; if (!L) return json(res, 200, { error: 'no such note' }); if (L.claimed) return json(res, 200, { error: 'this note was already claimed' });
-      L.claimed = true; L.claimedTs = Date.now(); w.priv += L.amt; hist(w, { type: 'claimed', amt: L.amt, memo: L.memo }); save();
+      L.claimed = true; L.claimedTs = Date.now(); w.priv += L.amt; if (L.by) bind(w, d.wallet.toLowerCase(), L.by); hist(w, { type: 'claimed', amt: L.amt, memo: L.memo }); save();
       return json(res, 200, { ok: true, claimed: L.amt, memo: L.memo, ...account(d.wallet) });
     }
     if (u === '/api/seal') { return json(res, 200, { ok: true, viewKey: viewKeyOf(d.wallet) }); }
     if (u === '/api/shield') { // public sUSD -> private
       const s = num(d.amount, w.susd); if (!s) return json(res, 200, { error: 'nothing to shield' });
-      const sn = toll('shield', s); w.susd -= s; w.priv += sn; sh.totalValue += sn; hist(w, { type: 'shield', amt: sn }); const { C, note } = shieldNote(sn, shKeys[0].pub);
+      const sn = toll('shield', s, w); w.susd -= s; w.priv += sn; sh.totalValue += sn; hist(w, { type: 'shield', amt: sn }); const { C, note } = shieldNote(sn, shKeys[0].pub);
       pushShTx({ sig: base58(randomBytes(32)), type: 'shield', commitment: C, note, ts: Date.now() }); save();
       return json(res, 200, { ok: true, shielded: sn, toll: s - sn, ...account(d.wallet) });
     }
     if (u === '/api/send') { // shielded transfer — amount + parties hidden
       if (!isWallet(d.to || '')) return json(res, 200, { error: 'enter a valid recipient address' });
       const x = num(d.amount, w.priv); if (!x) return json(res, 200, { error: 'not enough private balance' });
-      const xn = toll('send', x); w.priv -= x; const r = W(d.to); r.priv += xn; sh.nullifiers++; hist(w, { type: 'sent', amt: x, to: d.to.toLowerCase() }); hist(r, { type: 'received', amt: xn });
+      const xn = toll('send', x, w); w.priv -= x; const r = W(d.to); r.priv += xn; sh.nullifiers++; hist(w, { type: 'sent', amt: x, to: d.to.toLowerCase() }); hist(r, { type: 'received', amt: xn });
       const { C, note } = shieldNote(xn, shKeys[randomInt(0, shKeys.length)].pub);
       pushShTx({ sig: base58(randomBytes(32)), type: 'private', nullifier: nullifierOf('u', sh.notes), commitment: C, note, proof: simProof(), ts: Date.now() }); save();
       return json(res, 200, { ok: true, sent: xn, toll: x - xn, ...account(d.wallet) });
     }
     if (u === '/api/unshield') { // private -> public
       const un = num(d.amount, w.priv); if (!un) return json(res, 200, { error: 'nothing to unshield' });
-      const unn = toll('unshield', un); w.priv -= un; w.susd += unn; hist(w, { type: 'unshield', amt: un }); sh.totalValue = Math.max(0, sh.totalValue - un); sh.nullifiers++;
+      const unn = toll('unshield', un, w); w.priv -= un; w.susd += unn; hist(w, { type: 'unshield', amt: un }); sh.totalValue = Math.max(0, sh.totalValue - un); sh.nullifiers++;
       pushShTx({ sig: base58(randomBytes(32)), type: 'unshield', nullifier: nullifierOf('u', sh.notes), publicAmount: un, ts: Date.now() }); save();
       return json(res, 200, { ok: true, unshielded: unn, toll: un - unn, ...account(d.wallet) });
     }
