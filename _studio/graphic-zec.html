@@ -1,0 +1,82 @@
+<!doctype html><html><head><meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=EB+Garamond:ital@0;1&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#e9ddc6;--dim:#a58f6a;--mut:#6a5942;--gold:#c9a25e;--gold2:#e9cf95;--verd:#62a187;--verd2:#8fd1b4;--red:#d8503a;--zec:#e0b95e;--line:rgba(201,162,94,.18);--line2:rgba(201,162,94,.34)}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{font-family:'EB Garamond',serif;color:var(--ink);background:#080706;overflow:hidden}
+.ci{font-family:'Cinzel',serif}.mo{font-family:'JetBrains Mono',monospace}
+.stage{position:relative;width:2400px;height:1600px;overflow:hidden;background:
+  radial-gradient(120% 60% at 50% -8%,rgba(201,162,94,.08),transparent 55%),
+  radial-gradient(50% 50% at 86% 112%,rgba(98,161,135,.08),transparent 60%),#080706}
+.grain{position:absolute;inset:0;opacity:.05;background-image:radial-gradient(rgba(233,221,198,.5) .5px,transparent .6px);background-size:3px 3px}
+.wrap{position:absolute;inset:0;padding:76px 120px 0}
+.eye{font-size:26px;letter-spacing:.34em;color:var(--gold);text-transform:uppercase;text-align:center}
+.title{font-size:78px;font-weight:800;text-align:center;margin:18px 0 8px}
+.title em{font-style:normal;color:var(--gold)}
+.sub{font-size:30px;font-style:italic;color:var(--dim);text-align:center;margin-bottom:42px}
+.chart{border:1px solid var(--line2);padding:30px 40px 26px;background:linear-gradient(180deg,rgba(201,162,94,.05),rgba(201,162,94,.01))}
+.ch{font-family:'Cinzel';font-weight:700;font-size:24px;letter-spacing:.12em;color:var(--gold);text-transform:uppercase;margin-bottom:8px}
+.ch small{font-family:'JetBrains Mono';font-weight:400;font-size:17px;letter-spacing:.1em;color:var(--mut);margin-left:14px;text-transform:none}
+.row{display:grid;grid-template-columns:260px 1fr 260px;align-items:center;gap:24px;padding:12px 0;border-top:1px solid var(--line)}
+.row:first-of-type{border-top:none}
+.lab{font-family:'Cinzel';font-weight:700;font-size:28px;color:var(--ink)}.lab small{display:block;font-family:'EB Garamond';font-style:italic;font-weight:400;font-size:19px;color:var(--mut)}
+.bar{height:40px;background:rgba(201,162,94,.08);position:relative;border-radius:2px;overflow:visible}
+.bar i{position:absolute;left:0;top:0;bottom:0;border-radius:2px;display:block}
+.bar i.t{background:linear-gradient(90deg,#3d5c4f,#62a187)}.bar i.z{background:linear-gradient(90deg,#7a6230,var(--zec))}.bar i.x{background:linear-gradient(90deg,#5a4a2e,#a58f6a)}.bar i.s{background:var(--gold2);box-shadow:0 0 22px rgba(233,207,149,.9)}
+.val{font-family:'JetBrains Mono';font-weight:700;font-size:28px;text-align:right;color:var(--ink)}.val small{display:block;font-weight:400;font-size:16px;color:var(--mut);letter-spacing:.06em}
+.val.s{color:var(--gold2)}
+.math{margin-top:36px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:28px}
+.m{border:1px solid var(--line);padding:26px 30px;background:rgba(255,255,255,.012);text-align:center}
+.m .k{font-family:'JetBrains Mono';font-size:17px;letter-spacing:.18em;color:var(--verd);text-transform:uppercase}
+.m .v{font-family:'Cinzel';font-weight:800;font-size:64px;color:var(--gold2);margin:8px 0 4px;text-shadow:0 0 26px rgba(201,162,94,.4)}
+.m .d{font-size:22px;line-height:1.35;color:var(--dim)}
+.cmp{margin-top:36px;display:grid;grid-template-columns:1fr 1fr;gap:30px}
+.c{border:1px solid var(--line);padding:26px 32px;background:rgba(255,255,255,.012)}
+.c.r{border-color:var(--line2);background:linear-gradient(180deg,rgba(201,162,94,.07),rgba(201,162,94,.02))}
+.c .h{font-family:'Cinzel';font-weight:800;font-size:34px;letter-spacing:.05em}
+.c.l .h{color:var(--zec)}.c.r .h{color:var(--gold)}
+.c .h small{font-family:'JetBrains Mono';font-weight:400;font-size:18px;letter-spacing:.12em;text-transform:uppercase;margin-left:14px;color:var(--mut)}
+.kv{display:flex;justify-content:space-between;gap:16px;font-size:25px;padding:11px 0;border-top:1px solid var(--line)}
+.kv span{color:var(--dim)}.kv b{font-weight:400;color:var(--ink);text-align:right}
+.c.l .kv b i{font-style:normal;color:var(--red)}.c.r .kv b i{font-style:normal;color:var(--verd2)}
+.foot{position:absolute;left:0;right:0;bottom:40px;text-align:center;font-family:'JetBrains Mono';font-size:21px;color:var(--mut);letter-spacing:.08em}
+.foot b{color:var(--gold)}
+</style></head>
+<body><div class="stage"><div class="grain"></div>
+  <div class="wrap">
+    <div class="eye ci">Privacy has a $20B leader. It still isn&rsquo;t a dollar.</div>
+    <div class="title ci">ZEC hides a coin. <em>sUSD hides a dollar.</em></div>
+    <div class="sub">Ten years and twenty billion dollars later, Zcash is still something you convert out of before you pay rent. Private money means a private <b>dollar</b>.</div>
+
+    <div class="chart">
+      <div class="ch ci">Market cap <small>CoinGecko &middot; DexScreener &middot; Sep 10 2026 &middot; log scale</small></div>
+      <div class="row"><div class="lab">USDT + USDC<small>the dollar that isn&rsquo;t private</small></div><div class="bar"><i class="t" style="width:100%"></i></div><div class="val">$257.6B<small>every transfer public</small></div></div>
+      <div class="row"><div class="lab">ZEC<small>privacy that isn&rsquo;t a dollar</small></div><div class="bar"><i class="z" style="width:83%"></i></div><div class="val">$19.85B<small>$1,172 &middot; −63% from ATH</small></div></div>
+      <div class="row"><div class="lab">XMR<small>privacy that isn&rsquo;t a dollar</small></div><div class="bar"><i class="x" style="width:78%"></i></div><div class="val">$9.48B<small>$504</small></div></div>
+      <div class="row"><div class="lab">$STYX<small>the private dollar</small></div><div class="bar"><i class="s" style="width:1.2%"></i></div><div class="val s">$132K<small>day three &middot; Robinhood Chain</small></div></div>
+    </div>
+
+    <div class="math">
+      <div class="m"><div class="k mo">ZEC cap &divide; STYX cap</div><div class="v ci">150,000&times;</div><div class="d">the gap between a private coin and the private dollar, today</div></div>
+      <div class="m"><div class="k mo">1% of ZEC&rsquo;s cap</div><div class="v ci">$199M</div><div class="d">what $STYX is worth if it captures one percent of Zcash&rsquo;s valuation</div></div>
+      <div class="m"><div class="k mo">0.1% of the stablecoin market</div><div class="v ci">$258M</div><div class="d">the prize isn&rsquo;t privacy coins. it&rsquo;s the dollar. private.</div></div>
+    </div>
+
+    <div class="cmp">
+      <div class="c l"><div class="h ci">ZEC <small>Zcash &middot; 2016</small></div>
+        <div class="kv"><span>what you hold</span><b>a coin that moved <i>−63% from ATH</i></b></div>
+        <div class="kv"><span>can you price rent in it</span><b><i>no</i></b></div>
+        <div class="kv"><span>pay anyone without an address</span><b><i>no</i></b></div>
+        <div class="kv"><span>where it lives</span><b>its own chain, no stocks, no USDG</b></div>
+        <div class="kv"><span>usage &rarr; token</span><b>tx fees</b></div></div>
+      <div class="c r"><div class="h ci">$STYX / sUSD <small>Robinhood Chain &middot; 2026</small></div>
+        <div class="kv"><span>what you hold</span><b>a <i>$1 dollar</i>, shielded, 55% hard floor</b></div>
+        <div class="kv"><span>can you price rent in it</span><b><i>yes</i></b></div>
+        <div class="kv"><span>pay anyone without an address</span><b><i>yes</i> &middot; The Note</b></div>
+        <div class="kv"><span>where it lives</span><b>the chain with tokenized stocks and USDG</b></div>
+        <div class="kv"><span>usage &rarr; token</span><b><i>every crossing buys &amp; burns</i> $STYX</b></div></div>
+    </div>
+  </div>
+  <div class="foot mo">&#9899; <b>styxrh.xyz</b> &nbsp;&middot;&nbsp; $STYX &nbsp;&middot;&nbsp; a dollar you carry unseen &nbsp;&middot;&nbsp; caps are live reads, not promises &nbsp;&middot;&nbsp; defended, not guaranteed.</div>
+</div></body></html>

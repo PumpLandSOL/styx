@@ -262,3 +262,18 @@ How to cross, in 15 seconds:
 That's private money.
 
 styxrh.xyz
+
+
+---
+
+## vs ZEC (market cap)
+Graphic: `brand/styx-vs-zec.png` (caps: CoinGecko/DexScreener, Sep 10 2026)
+
+### Tweet (258 chars)
+ZEC is a $19.8B privacy coin. Ten years in, you still can't price rent in it. You convert out before you pay.
+
+sUSD is the private dollar. Shielded, pegged, 55% hard USDG floor, pay anyone by link.
+
+$STYX is $132K today. 1% of ZEC's cap is $199M.
+
+styxrh.xyz
