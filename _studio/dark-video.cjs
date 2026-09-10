@@ -5,7 +5,7 @@ const { promisify } = require('util');
 const fs = require('fs'); const path = require('path');
 const pexec = promisify(execFile);
 const CHROME = 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
-const W = 1280, H = 720, FPS = 30, DUR = 10, PORT = 9503;
+const W = 1280, H = 720, FPS = 30, DUR = 10, PORT = 9505;
 const OUT = path.join(__dirname, '..', 'brand', 'styx-darkpool-10s.mp4');
 const FRAMES = path.join(__dirname, 'dark-frames');
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));

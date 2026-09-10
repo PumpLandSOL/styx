@@ -31,7 +31,7 @@ function chart(t, x, y, w, h, a, k) { g.save(); g.globalAlpha = a; g.strokeStyle
 window.__seek = function (t) {
   bg(t); motes(t, t < 9 ? .8 : .8 * (1 - seg(t, 9, 10))); vignette();
   // 0–2.3 hook: the tape
-  if (t < 2.4) { const a = fadeIO(t, .2, 2.4, .35); tapeStrip(t, 120, a * .9); g.globalAlpha = a; txt('EVERY STOCK ON ROBINHOOD CHAIN', W / 2, H / 2 - 30, 56, INK, 'Cinzel', 800, 'center', 5); txt('is traded in public. every position. every size. every wallet.', W / 2, H / 2 + 44, 28, MUT, 'EB Garamond', 400); g.globalAlpha = 1; }
+  if (t < 2.4) { const a = fadeIO(t, .2, 2.4, .35); tapeStrip(t, 120, a * .9); g.globalAlpha = a; txt('EVERY STOCK ON ROBINHOOD CHAIN', W / 2, H / 2 - 30, 48, INK, 'Cinzel', 800, 'center', 4); txt('is traded in public. every position. every size. every wallet.', W / 2, H / 2 + 44, 28, MUT, 'EB Garamond', 400); g.globalAlpha = 1; }
   // 2.3–6.6 the dark pool: open a position, it goes dark
   if (t >= 2.3 && t < 6.7) {
     const a = fadeIO(t, 2.3, 6.7, .3); const k = seg(t, 2.6, 6.2);
