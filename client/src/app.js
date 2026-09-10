@@ -55,7 +55,7 @@ function renderMetrics() {
   }
   if (M.chain && M.chain.ok) $('tr-chain').textContent = '· on-chain: ' + fmt(M.chain.treasuryUsdg, 2) + ' USDG · ' + big(M.chain.treasuryStyx) + ' STYX';
   if (M.ferry) { const Fm = M.ferry;
-    $('ferryboard').innerHTML = Fm.board.map((b, i) => `<div class="r"><span class="ty">#${i + 1}</span><span class="sg">${b.who}</span><span class="am">${b.souls} soul${b.souls === 1 ? '' : 's'} · ${fmt(b.earned, 2)} sUSD</span></div>`).join('') || '<div class="r"><span class="sg">no souls carried yet — write the first Note</span></div>';
+    $('ferryboard').innerHTML = Fm.board.map((b, i) => `<div class="r"><span class="ty">#${i + 1}</span><span class="sg">${b.who}</span><span class="am">${b.souls} referred · ${fmt(b.earned, 2)} sUSD</span></div>`).join('') || '<div class="r"><span class="sg">no referrals yet — write the first Note</span></div>';
   }
   if (M.pyre) { const P = M.pyre;
     $('p-styx').textContent = big(P.burnedStyx) + ' STYX'; $('p-usd').textContent = '$' + big(P.burnedUsd);
@@ -191,7 +191,7 @@ async function doAct(url, payload, msg) {
   if (r.error) return toast(r.error, true);
   A = r; renderAccount(); loadMetrics(); toast(msg(r));
 }
-$('ferrycopy').onclick = () => { navigator.clipboard.writeText(location.origin + '/?ref=' + wallet); toast('ferry link copied'); };
+$('ferrycopy').onclick = () => { navigator.clipboard.writeText(location.origin + '/?ref=' + wallet); toast('referral link copied'); };
 $('ca-copy').onclick = () => { navigator.clipboard.writeText(M.mint); toast('copied'); };
 $('tr-copy').onclick = () => { navigator.clipboard.writeText(M.treasury); toast('copied'); };
 

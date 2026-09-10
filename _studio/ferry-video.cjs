@@ -5,7 +5,7 @@ const { promisify } = require('util');
 const fs = require('fs'); const path = require('path');
 const pexec = promisify(execFile);
 const CHROME = 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
-const W = 1280, H = 720, FPS = 30, DUR = 10, PORT = 9497;
+const W = 1280, H = 720, FPS = 30, DUR = 10, PORT = 9499;
 const OUT = path.join(__dirname, '..', 'brand', 'styx-ferry-10s.mp4');
 const FRAMES = path.join(__dirname, 'ferry-frames');
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));

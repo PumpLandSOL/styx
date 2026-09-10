@@ -28,22 +28,22 @@ function num(n) { return Math.floor(n).toLocaleString('en-US'); }
 window.__seek = function (t) {
   bg(t); motes(t, t < 9 ? .8 : .8 * (1 - seg(t, 9, 10))); vignette();
   // 0–2.2 hook
-  if (t < 2.3) { const a = fadeIO(t, .2, 2.3, .35); g.globalAlpha = a; txt('EVERY SOUL YOU CARRY', W / 2, H / 2 - 40, 70, INK, 'Cinzel', 800, 'center', 6); txt('pays you. every crossing. forever.', W / 2, H / 2 + 40, 30, GOLD2, 'EB Garamond', 400); g.globalAlpha = 1; }
+  if (t < 2.3) { const a = fadeIO(t, .2, 2.3, .35); g.globalAlpha = a; txt('EVERY PERSON YOU REFER', W / 2, H / 2 - 40, 70, INK, 'Cinzel', 800, 'center', 6); txt('pays you. every crossing. forever.', W / 2, H / 2 + 40, 30, GOLD2, 'EB Garamond', 400); g.globalAlpha = 1; }
   // 2.2–6.2 the river: souls cross toward the ferryman, coins flow back
   if (t >= 2.2 && t < 6.3) {
     const a = fadeIO(t, 2.2, 6.3, .3); river(t, a); ferryman(1040, 330, a);
-    g.globalAlpha = a; txt("CHARON'S CUT", W / 2, 110, 64, GOLD2, 'Cinzel', 800, 'center', 12); txt('claim my Note or cross through my ferry link → you are my soul', W / 2, 170, 24, MUT, 'EB Garamond', 400); g.globalAlpha = 1;
+    g.globalAlpha = a; txt('REFERRALS', W / 2, 110, 64, GOLD2, 'Cinzel', 800, 'center', 12); txt('claim my Note or use my link → you are my referral', W / 2, 170, 24, MUT, 'EB Garamond', 400); g.globalAlpha = 1;
     let earned = 0;
     for (const s of SOULS) { const k = seg(t, s.t0, s.t0 + 1.6 / s.sp); if (k <= 0) continue; const x = 160 + ease(k) * 800; const y = s.y + Math.sin(t * 3 + s.ph) * 6; soul(x, y, a * (k < 1 ? 1 : .8), k < 1 ? VERD2 : GOLD2);
       // once across, coins flow back to the ferryman repeatedly
       if (k >= 1) { const cyc = ((t - (s.t0 + 1.6 / s.sp)) * 1.3) % 1; coin(960 + cyc * 70, y + (330 - y) * cyc, a * (1 - cyc * .3), 6); earned += 0.024 * Math.floor((t - (s.t0 + 1.6 / s.sp)) * 1.3 + 1); } }
     g.globalAlpha = a; txt('20% OF EVERY TOLL', 1040, 470, 20, GOLD, 'JetBrains Mono', 500, 'center', 5); txt('+' + earned.toFixed(3) + ' sUSD', 1040, 520, 44, GOLD2, 'Cinzel', 800, 'center', 2);
-    txt('shield · send · unshield · redeem', 1040, 570, 18, MUT, 'JetBrains Mono', 500, 'center', 2); txt('souls', 180, 470, 20, VERD, 'JetBrains Mono', 500, 'center', 5); txt(num(SOULS.filter((s) => t >= s.t0 + 1.6 / s.sp).length), 180, 520, 44, VERD2, 'Cinzel', 800, 'center'); g.globalAlpha = 1;
+    txt('shield · send · unshield · redeem', 1040, 570, 18, MUT, 'JetBrains Mono', 500, 'center', 2); txt('referred', 180, 470, 20, VERD, 'JetBrains Mono', 500, 'center', 5); txt(num(SOULS.filter((s) => t >= s.t0 + 1.6 / s.sp).length), 180, 520, 44, VERD2, 'Cinzel', 800, 'center'); g.globalAlpha = 1;
   }
   // 6.2–8.4 the math
-  if (t >= 6.2 && t < 8.5) { const a = fadeIO(t, 6.2, 8.5, .3); g.globalAlpha = a; txt('NOT A ONE-TIME BONUS.', W / 2, H / 2 - 70, 58, MUT, 'Cinzel', 800, 'center', 4); g.globalAlpha = a * seg(t, 6.8, 7.3); g.shadowColor = 'rgba(233,207,149,.6)'; g.shadowBlur = 30; txt('A CUT OF THEIR TOLLS FOREVER.', W / 2, H / 2 + 20, 58, GOLD2, 'Cinzel', 800, 'center', 4); g.shadowBlur = 0; g.globalAlpha = a; txt('one ferryman per soul · set once · never changed · the pyre takes the other 80%', W / 2, H / 2 + 110, 22, MUT, 'EB Garamond', 400); g.globalAlpha = 1; }
+  if (t >= 6.2 && t < 8.5) { const a = fadeIO(t, 6.2, 8.5, .3); g.globalAlpha = a; txt('NOT A ONE-TIME BONUS.', W / 2, H / 2 - 70, 58, MUT, 'Cinzel', 800, 'center', 4); g.globalAlpha = a * seg(t, 6.8, 7.3); g.shadowColor = 'rgba(233,207,149,.6)'; g.shadowBlur = 30; txt('A CUT OF THEIR TOLLS FOREVER.', W / 2, H / 2 + 20, 58, GOLD2, 'Cinzel', 800, 'center', 4); g.shadowBlur = 0; g.globalAlpha = a; txt('one referrer per wallet · set once · never changed · the pyre takes the other 80%', W / 2, H / 2 + 110, 22, MUT, 'EB Garamond', 400); g.globalAlpha = 1; }
   // 8.4–10 outro
-  if (t >= 8.4) { const a = seg(t, 8.4, 8.8); g.globalAlpha = a; txt('STYX', W / 2, H / 2 - 10, 96, GOLD, 'Cinzel', 800, 'center', 22); txt('styxrh.xyz/?ref=YOU  ·  $STYX  ·  become a ferryman', W / 2, H / 2 + 80, 22, MUT, 'JetBrains Mono', 500, 'center', 2); g.globalAlpha = 1; }
+  if (t >= 8.4) { const a = seg(t, 8.4, 8.8); g.globalAlpha = a; txt('STYX', W / 2, H / 2 - 10, 96, GOLD, 'Cinzel', 800, 'center', 22); txt('styxrh.xyz/?ref=YOU  ·  $STYX  ·  refer someone', W / 2, H / 2 + 80, 22, MUT, 'JetBrains Mono', 500, 'center', 2); g.globalAlpha = 1; }
   return true;
 };
 window.__ready = document.fonts.ready.then(() => { __seek(0); return true; });
