@@ -131,6 +131,14 @@ main{padding:20px 0 90px}
 .linkbox code{flex:1;font-family:'JetBrains Mono';font-size:12px;color:var(--gold);word-break:break-all}
 .linkbox button{font-family:'Cinzel';font-size:11px;letter-spacing:.1em;border:1px solid var(--gold);background:none;color:var(--gold);padding:6px 10px;cursor:pointer}
 @media(max-width:720px){.rite3{grid-template-columns:1fr}}
+.tape{display:flex;gap:0;overflow:hidden;border:1px solid var(--line2);border-radius:3px;background:var(--stone)}
+.tape .m{flex:1;padding:12px 10px;text-align:center;border-right:1px solid var(--line)}.tape .m:last-child{border-right:none}
+.tape .s{font-family:'Cinzel';font-weight:700;font-size:13px;letter-spacing:.1em;color:var(--gold)}.tape .p{font-family:'JetBrains Mono';font-size:13px;color:var(--ink);margin-top:4px}.tape .m.closed .p{color:var(--mut)}
+.tape .st{font-family:'JetBrains Mono';font-size:9px;letter-spacing:.14em;color:var(--verd);margin-top:3px;text-transform:uppercase}.tape .m.closed .st{color:var(--mut)}
+.dark{display:grid;grid-template-columns:repeat(4,1fr);background:linear-gradient(180deg,#0b0a10,var(--stone));border:1px solid rgba(201,162,94,.4);border-radius:3px;margin-top:14px}
+.dark .stat .v{color:var(--gold2)}
+.pos{display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--line);font-size:14px}.pos b{font-family:'Cinzel';color:var(--gold)}.pos .pnl{margin-left:auto;font-family:'JetBrains Mono';font-weight:500}.pos .pnl.up{color:var(--verd)}.pos .pnl.dn{color:var(--red)}
+.pos button{font-family:'Cinzel';font-size:10px;letter-spacing:.1em;border:1px solid var(--line2);background:none;color:var(--dim);padding:5px 9px;cursor:pointer}.pos button:hover{color:var(--gold);border-color:var(--gold)}
 .led .ty.burn{color:#d8503a;border-color:rgba(216,80,58,.45)}
 .pyre{display:grid;grid-template-columns:repeat(4,1fr);background:linear-gradient(180deg,#1a0e08,var(--stone));border:1px solid rgba(216,80,58,.35);border-radius:3px;position:relative;overflow:hidden}
 .pyre::before{content:"";position:absolute;inset:0;background:radial-gradient(60% 90% at 50% 120%,rgba(216,80,58,.22),transparent 70%);pointer-events:none}
@@ -231,7 +239,7 @@ footer{text-align:center;color:var(--mut);font-style:italic;font-size:14px;paddi
       <div class="b priv"><div class="l">sUSD · unseen</div><div class="v"><span id="b-priv-red" class="redact">██████</span><span id="b-priv-val" style="display:none"></span><span class="reveal" id="b-priv-eye">reveal</span><span class="reveal" id="b-seal" title="generate a read-only view key">seal</span></div></div>
     </div>
     <div class="tabs">
-      <button data-tab="deposit">Deposit</button><button data-tab="bond">Bonds</button><button class="on" data-tab="mint">Mint</button><button data-tab="shield">Shield</button><button data-tab="send">Send Unseen</button><button data-tab="vigil">The Vigil</button><button data-tab="redeem">Redeem</button>
+      <button data-tab="deposit">Deposit</button><button data-tab="bond">Bonds</button><button class="on" data-tab="mint">Mint</button><button data-tab="shield">Shield</button><button data-tab="send">Send Unseen</button><button data-tab="dark">Dark Pool</button><button data-tab="vigil">The Vigil</button><button data-tab="redeem">Redeem</button>
     </div>
     <div class="panel" id="panel"></div>
   </div>
@@ -252,6 +260,17 @@ footer{text-align:center;color:var(--mut);font-style:italic;font-size:14px;paddi
     <div class="r3"><div class="k">The Note · pay anyone, no address</div><h3>Send private dollars as a link.</h3><p>Lock shielded sUSD behind a secret. Whoever opens the link claims it into <b>their own</b> shielded balance. No recipient is ever named, on the ledger it is one nullifier and one commitment, same as any private send. <b>Text it. DM it. Print it as a QR.</b></p></div>
     <div class="r3"><div class="k">The Seal · selective disclosure</div><h3>Prove it to one person. Hide it from everyone else.</h3><p>Generate a <b>view key</b> for your wallet. Whoever holds it can read your shielded balance and history on a sealed statement page. It <b>can never spend</b>. Give it to an accountant, a partner, a regulator — and to nobody else.</p></div>
   </div>
+
+  <!-- THE DARK POOL -->
+  <div class="sec" id="darkpool"><span>The dark pool · stocks, unseen<span class="tmp" style="background:var(--gold)">NEW</span></span></div>
+  <div class="tape" id="tape"></div>
+  <div class="dark">
+    <div class="stat"><div class="l">positions open</div><div class="v" id="dk-open">—</div></div>
+    <div class="stat"><div class="l">notional inside</div><div class="v"><span class="redact">██████</span></div></div>
+    <div class="stat"><div class="l">volume crossed</div><div class="v" id="dk-vol">—</div></div>
+    <div class="stat"><div class="l">fees → the pyre</div><div class="v" id="dk-fees">—</div></div>
+  </div>
+  <div class="pyre-note">Take exposure to <b>tokenized stocks with shielded sUSD</b>. Long or short, 1x, priced off the live exchange tape. Ticker, size, side and P&amp;L stay inside the shield — the ledger sees one nullifier and one commitment, same as any private send. <b>30 bps</b> each way to The Pyre. Trades only clear while the tape is live.</div>
 
   <!-- BONDS -->
   <div class="sec" id="bonds"><span>Bonds · deposit USDG, take $STYX at a discount<span class="tmp" style="background:var(--red);color:#fff">−20%</span></span></div>
@@ -333,6 +352,7 @@ footer{text-align:center;color:var(--mut);font-style:italic;font-size:14px;paddi
     <details><summary>What is the Seal?</summary><div class="a">A <b>view key</b>: an HMAC over your address with a server salt, encoded with your address so the statement page can verify it. It reads your shielded balance and history. It has <b>no spending power</b>. This is the selective-disclosure model privacy coins use for audits: you choose who sees, and only they see.</div></details>
     <details><summary>Is my USDG actually deposited?</summary><div class="a">Yes. Minting starts with a real <b>USDG transfer on Robinhood Chain to the treasury</b>. The server reads the transaction receipt, checks the Transfer log is from your wallet to the treasury, and only then credits your ledger. Every deposited dollar sits in the treasury address you can see on the explorer. <i>Nothing on this site is paper any more.</i></div></details>
     <details><summary>How do I get USDG back out?</summary><div class="a">Redeem sUSD for USDG on the ledger, then <b>Withdraw</b>. Withdrawals go into a queue the treasury pays out by hand from a cold wallet, usually within 24 hours, and the payout tx hash is written next to your request. There is deliberately <b>no hot key on the server</b>.</div></details>
+    <details><summary>What is the Dark Pool?</summary><div class="a">Private exposure to tokenized stocks. You commit shielded sUSD to a long or short on HOOD, TSLA, NVDA, SPY and others, 1x, no leverage, priced off the live exchange tape. When you close, P&amp;L settles back into your shielded balance. <b>Nobody can see what you hold, how much, or which way.</b> Positions are capped per wallet and pool-wide, shorts stop out at 95% loss, and trades only clear while the tape is fresh. The protocol is the counterparty; fees go to The Pyre.</div></details>
     <details><summary>What are Bonds?</summary><div class="a">The fastest way to grow the reserve. You deposit USDG and receive <b>$STYX at 20% below market</b>, vesting linearly over 5 days, claimable as it vests and withdrawable to your wallet from the treasury. Your USDG goes into the sUSD reserve and <b>mints nothing</b>, so bonds push the collateral ratio up, not down. Capacity is capped per day and the program closes with the Vigil on Oct 11.</div></details>
     <details><summary>What is The Vigil, and why is it temporary?</summary><div class="a">A 30-day staking window: stake sUSD, earn a fixed APY, paid in <b>$STYX from a pool the treasury set aside in advance</b>. It has a hard end date and a hard pool size. Anchor's 20% was permanent and subsidised, so it became the only reason to hold UST and the peg died with it. A yield that <i>ends</i> can't do that.</div></details>
     <details><summary>What is The Pyre?</summary><div class="a">A ferry toll. Every shield, private send and unshield pays <b>30 bps</b>, every redeem pays <b>50 bps</b>. The toll gathers in USDG and each epoch the protocol buys <b>$STYX</b> at market and burns it, publishing a burn receipt. Usage of private money becomes permanent scarcity in the share token. <i>The burn is public. The payer never is.</i></div></details>

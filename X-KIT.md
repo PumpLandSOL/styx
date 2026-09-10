@@ -333,3 +333,20 @@ One of one. $STYX
 styxrh.xyz
 
 Graphic: `brand/styx-one-of-one.png` (quadrant map: stable×private, sUSD alone)
+
+
+---
+
+## THE DARK POOL — private stock exposure
+Video: `brand/styx-darkpool-10s.mp4` (10s, rendered) · link: styxrh.xyz/?tab=dark
+
+### Tweet (331 chars)
+The Dark Pool is live on $STYX.
+
+Every stock on Robinhood Chain trades in public. Every position, every size, every wallet.
+
+Not anymore. Commit shielded sUSD to HOOD, TSLA, NVDA, SPY. Long or short, off the live tape. Ticker, size and P&L stay in the shield.
+
+The first private stock desk on Robinhood Chain.
+
+styxrh.xyz/?tab=dark

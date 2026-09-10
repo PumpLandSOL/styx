@@ -49,6 +49,10 @@ function renderMetrics() {
   $('s-shd').textContent = big(M.shielded.totalValue) + ' sUSD';
   if (M.mint) { $('cabar').style.display = 'flex'; $('ca-mint').textContent = M.mint; }
   if (M.treasury) { $('trbar').style.display = 'flex'; $('tr-addr').textContent = M.treasury; }
+  if (M.dark) { const D = M.dark;
+    $('tape').innerHTML = D.markets.map((m) => `<div class="m ${m.fresh ? '' : 'closed'}"><div class="s">${m.sym}</div><div class="p">${m.px ? '$' + fmt(m.px, m.px < 10 ? 4 : 2) : '—'}</div><div class="st">${m.fresh ? 'live' : 'closed'}</div></div>`).join('');
+    $('dk-open').textContent = fmt(D.open, 0); $('dk-vol').textContent = '$' + big(D.volume); $('dk-fees').textContent = '$' + fmt(D.fees, 2);
+  }
   if (M.bonds) { const Bd = M.bonds;
     $('bd-price').textContent = '$' + fmt(Bd.price, 6); $('bd-market').textContent = '$' + fmt(Bd.market, 6); $('bd-left').textContent = '$' + fmt(Bd.leftToday, 0) + ' / $' + fmt(Bd.capUsd, 0); $('bd-sold').textContent = '$' + fmt(Bd.soldUsd, 0) + ' · ' + big(Bd.soldStyx) + ' STYX';
   }
@@ -109,6 +113,18 @@ function renderPanel() {
       <button class="btn wide" id="act" style="margin-top:14px">Claim into my shielded balance</button>`;
     api('/api/note/peek', { secret: claimSecret }).then((r) => { if (r.error) { $('cl-amt').textContent = r.error; $('act').disabled = true; return; } $('cl-amt').textContent = r.claimed ? 'already claimed' : fmt(r.amt, 2) + ' sUSD'; $('cl-memo').textContent = r.memo || '—'; if (r.claimed) $('act').disabled = true; });
     $('act').onclick = () => doAct('/api/note/claim', { secret: claimSecret, amount: 1 }, (r) => { history.replaceState(null, '', location.pathname); tab = 'send'; renderPanel(); return `claimed ${fmt(r.claimed, 2)} sUSD — privately`; });
+  } else if (tab === 'dark') {
+    const D = M && M.dark, pos = (A && A.dark) || [];
+    p.innerHTML = `<div class="note"><b>The Dark Pool.</b> Commit shielded sUSD to a stock. Long or short, 1x, live tape. Ticker, size and P&amp;L stay in the shield. 30 bps each way.</div>
+      <div style="display:flex;gap:10px"><div class="field" style="flex:1"><select id="sym" style="flex:1;background:none;border:none;color:var(--ink);font-family:'JetBrains Mono';font-size:15px;outline:none">${(D ? D.markets : []).map((m) => `<option value="${m.sym}" ${m.fresh ? '' : 'disabled'}>${m.sym} ${m.px ? '· $' + fmt(m.px, 2) : ''}${m.fresh ? '' : ' · closed'}</option>`).join('')}</select></div>
+      <div class="field" style="flex:0 0 150px"><select id="side" style="flex:1;background:none;border:none;color:var(--ink);font-family:'JetBrains Mono';font-size:15px;outline:none"><option value="long">LONG</option><option value="short">SHORT</option></select></div></div>
+      <div class="field"><input id="in" type="number" placeholder="10.00 minimum" min="10"><span class="u">sUSD</span><span class="mx" id="mx">MAX</span></div>
+      <div class="kv"><span>Shielded balance</span><b>${A ? (reveal ? fmt(A.priv, 2) : '████') : '—'}</b></div><div class="kv"><span>Per position · pool</span><b>${D ? 'max ' + fmt(D.maxPos, 0) + ' · ' + (D.full ? 'full' : 'open') : '—'}</b></div>
+      <button class="btn fill wide" id="act" style="margin-top:14px">Open unseen</button>
+      ${pos.length ? '<div style="margin-top:16px">' + pos.map((q) => `<div class="pos"><b>${q.sym}</b><span>${q.side}</span><span class="sg" style="font-family:'JetBrains Mono';font-size:12px;color:var(--mut)">${fmt(q.notional, 2)} @ ${fmt(q.entry, 2)} → ${fmt(q.px, 2)}</span><span class="pnl ${q.pnl >= 0 ? 'up' : 'dn'}">${q.pnl >= 0 ? '+' : ''}${fmt(q.pnl, 2)}</span><button data-close="${q.id}" ${q.fresh ? '' : 'disabled'}>Close</button></div>`).join('') + '</div>' : ''}`;
+    $('mx').onclick = () => { if (A) $('in').value = Math.min(A.priv, D ? D.maxPos : 1000); };
+    $('act').onclick = () => doAct('/api/dark/open', { sym: $('sym').value, side: $('side').value, amount: +$('in').value }, (r) => `opened ${r.opened.side} ${r.opened.sym} — unseen`);
+    p.querySelectorAll('[data-close]').forEach((b) => b.onclick = () => doAct('/api/dark/close', { id: b.dataset.close, amount: 1 }, (r) => `closed · ${r.closed.pnl >= 0 ? '+' : ''}${fmt(r.closed.pnl, 2)} sUSD`));
   } else if (tab === 'bond') {
     const Bd = M && M.bonds, me = A && A.bonds;
     p.innerHTML = `<div class="note"><b>Bond USDG for $STYX at ${Bd ? fmt(Bd.discount * 100, 0) : 20}% below market.</b> Vests over ${Bd ? Bd.vestDays : 5} days. Your USDG goes to the reserve and mints nothing. ${Bd && !Bd.open ? '<b>Bonds are closed.</b>' : ''}</div>

@@ -148,6 +148,44 @@ function bondDay() { const d = Math.floor(Date.now() / 864e5); if (db.bonds.day 
 const bondPrice = () => Math.max(0.000001, db.styxPrice) * (1 - BOND.discount);
 function bondView(u, now) { const list = (u.bonds || []).map((b) => { const k = Math.min(1, Math.max(0, (now - b.ts) / BOND.vestMs)); const vested = b.styx * k; return { id: b.id, usd: b.usd, styx: b.styx, price: b.price, ts: b.ts, vestEnd: b.ts + BOND.vestMs, vested, claimable: Math.max(0, vested - b.claimed), claimed: b.claimed }; }); return { list, claimable: list.reduce((x, b) => x + b.claimable, 0), pending: list.reduce((x, b) => x + (b.styx - b.claimed), 0) }; }
 
+// ---------- THE DARK POOL: shielded 1x exposure to tokenized stocks, priced off the exchange tape, settled in shielded sUSD ----------
+//   Ticker, size, side and P&L live inside the shield. The ledger sees one nullifier + one commitment per open/close, same as any private send.
+//   No leverage. Position and open-interest caps. Tape must be fresh (< 15 min) or the market is closed to new trades. Shorts are capped at 95% loss.
+const YF = 'https://query1.finance.yahoo.com/v8/finance/chart/';
+const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/128 Safari/537.36';
+const DARK_FEED = { HOOD: 'HOOD', TSLA: 'TSLA', NVDA: 'NVDA', AAPL: 'AAPL', SPY: 'SPY', COIN: 'COIN', MSTR: 'MSTR', GLD: 'GLD', BTC: 'BTC-USD', ETH: 'ETH-USD' };
+const DARK = { fee: +(process.env.DARK_FEE || 0.003), maxPos: +(process.env.DARK_MAX_POS || 1000), maxOi: +(process.env.DARK_MAX_OI || 25000), fresh: 15 * 60e3, liq: 0.95 };
+const TAPE = {};   // sym -> { px, ts, at }
+async function pollTape() {
+  for (const [sym, q] of Object.entries(DARK_FEED)) {
+    try { const ac = new AbortController(); const tm = setTimeout(() => ac.abort(), 9000);
+      const r = await fetch(YF + encodeURIComponent(q) + '?range=1d&interval=1m&includePrePost=true', { headers: { accept: 'application/json', 'user-agent': UA }, signal: ac.signal }); clearTimeout(tm); if (!r.ok) continue;
+      const res = (await r.json()).chart.result[0]; const m = res.meta; let v = +m.regularMarketPrice, ts = m.regularMarketTime * 1000;
+      const T = res.timestamp || [], C = (res.indicators.quote[0] && res.indicators.quote[0].close) || [];
+      for (let i = C.length - 1; i >= 0; i--) if (C[i] != null && T[i] * 1000 > ts) { v = +C[i]; ts = T[i] * 1000; break; }
+      if (v > 0) TAPE[sym] = { px: v, ts, at: Date.now() };
+    } catch (e) {}
+    await new Promise((r) => setTimeout(r, 100));
+  }
+  markDark();
+}
+setInterval(pollTape, 30000); pollTape();
+const tapeFresh = (sym) => { const t = TAPE[sym]; return !!t && (Date.now() - t.ts) < DARK.fresh; };
+if (!db.dark) db.dark = { oi: 0, open: 0, opened: 0, closed: 0, volume: 0, fees: 0, housePnl: 0, liqs: 0 };
+const posPnl = (p, px) => p.side === 'long' ? p.notional * (px - p.entry) / p.entry : p.notional * (p.entry - px) / p.entry;
+function closePos(w, p, px, why) {   // settle into the shield
+  let pnl = posPnl(p, px); if (pnl < -p.notional * DARK.liq) pnl = -p.notional * DARK.liq;
+  const fee = p.notional * DARK.fee; const back = Math.max(0, p.notional + pnl - fee);
+  w.priv += back; pyre.tollUsd += fee; db.dark.fees += fee; db.dark.housePnl -= pnl; db.dark.oi = Math.max(0, db.dark.oi - p.notional); db.dark.open = Math.max(0, db.dark.open - 1); db.dark.closed++; if (why === 'liq') db.dark.liqs++;
+  w.dark = (w.dark || []).filter((x) => x.id !== p.id); hist(w, { type: 'dark-close', amt: back, memo: p.sym + ' ' + p.side + ' · ' + (pnl >= 0 ? '+' : '') + pnl.toFixed(2) });
+  sh.nullifiers++; const { C, note } = shieldNote(back, shKeys[randomInt(0, shKeys.length)].pub); pushShTx({ sig: base58(randomBytes(32)), type: 'private', nullifier: nullifierOf('d', sh.notes), commitment: C, note, proof: simProof(), ts: Date.now() });
+  return { pnl, fee, back };
+}
+function markDark() {   // auto-close anything past the loss cap
+  for (const [addr, w] of Object.entries(db.wallets)) for (const p of (w.dark || []).slice()) { const t = TAPE[p.sym]; if (!t) continue; if (posPnl(p, t.px) <= -p.notional * DARK.liq) closePos(w, p, t.px, 'liq'); }
+}
+function darkView(u) { return (u.dark || []).map((p) => { const t = TAPE[p.sym]; const px = t ? t.px : p.entry; const pnl = Math.max(-p.notional * DARK.liq, posPnl(p, px)); return { ...p, px, pnl, fresh: tapeFresh(p.sym) }; }); }
+
 // ---------- privacy primitives (real) ----------
 const shKeys = [];
 function shInit() { for (let i = 0; i < 16; i++) { const kp = generateKeyPairSync('x25519'); shKeys.push({ pub: kp.publicKey, addr: base58(rawX(kp.publicKey)), secret: base58(randomBytes(12)) }); } }
@@ -204,14 +242,14 @@ function metrics() {
     cr: db.cr, collateralUsd: db.collateralUsd, backingRatio: backing,
     styxPrice: db.styxPrice, styxSupply: db.styxSupply, styxMarketCap: db.styxPrice * db.styxSupply,
     minDeposit: MIN_DEPOSIT, chain: { ok: CHAIN.ok, block: CHAIN.block, treasuryUsdg: CHAIN.treasuryUsdg, treasuryStyx: CHAIN.treasuryStyx, lastRead: CHAIN.lastRead, usdg: USDG.addr, rpc: RPCS[0] },
-    deposits: { usdg: db.treasuryIn.usdg, n: db.treasuryIn.n }, bonds: (() => { const B = bondDay(); return { discount: BOND.discount, vestDays: BOND.vestMs / 864e5, capUsd: BOND.capUsd, leftToday: Math.max(0, BOND.capUsd - B.dayUsd), soldUsd: B.soldUsd, soldStyx: B.soldStyx, n: B.n, price: bondPrice(), market: db.styxPrice, end: BOND.end, open: Date.now() <= BOND.end, min: BOND.min }; })(), ferry: { cut: FERRY_CUT, souls: db.ferry.souls, paid: db.ferry.paid, board: ferrymen() }, notes: { created: Object.keys(db.links).length, open: Object.values(db.links).filter((L) => !L.claimed).length, claimed: Object.values(db.links).filter((L) => L.claimed).length }, queue: { open: db.queue.filter((q) => q.status === 'queued').length, openUsd: db.queue.filter((q) => q.status === 'queued').reduce((a, q) => a + q.amt, 0), paid: db.queue.filter((q) => q.status === 'paid').length },
+    deposits: { usdg: db.treasuryIn.usdg, n: db.treasuryIn.n }, dark: { markets: Object.keys(DARK_FEED).map((sym) => ({ sym, px: TAPE[sym] ? TAPE[sym].px : null, ts: TAPE[sym] ? TAPE[sym].ts : null, fresh: tapeFresh(sym) })), open: db.dark.open, opened: db.dark.opened, closed: db.dark.closed, volume: db.dark.volume, fees: db.dark.fees, liqs: db.dark.liqs, fee: DARK.fee, maxPos: DARK.maxPos, maxOi: DARK.maxOi, full: db.dark.oi >= DARK.maxOi }, bonds: (() => { const B = bondDay(); return { discount: BOND.discount, vestDays: BOND.vestMs / 864e5, capUsd: BOND.capUsd, leftToday: Math.max(0, BOND.capUsd - B.dayUsd), soldUsd: B.soldUsd, soldStyx: B.soldStyx, n: B.n, price: bondPrice(), market: db.styxPrice, end: BOND.end, open: Date.now() <= BOND.end, min: BOND.min }; })(), ferry: { cut: FERRY_CUT, souls: db.ferry.souls, paid: db.ferry.paid, board: ferrymen() }, notes: { created: Object.keys(db.links).length, open: Object.values(db.links).filter((L) => !L.claimed).length, claimed: Object.values(db.links).filter((L) => L.claimed).length }, queue: { open: db.queue.filter((q) => q.status === 'queued').length, openUsd: db.queue.filter((q) => q.status === 'queued').reduce((a, q) => a + q.amt, 0), paid: db.queue.filter((q) => q.status === 'paid').length },
     vigil: { ...VIGIL, apy: vigilApy(Date.now()), baseApy: VIGIL.apy, boost: { apy: VIGIL_BOOST.apy, end: VIGIL_BOOST.end, live: Date.now() < VIGIL_BOOST.end, endsIn: Math.max(0, VIGIL_BOOST.end - Date.now()) }, live: vigilLive(Date.now()), staked: db.vigil.staked, stakers: db.vigil.stakers, paidStyx: db.vigil.paidStyx, paidUsd: db.vigil.paidUsd, poolLeft: Math.max(0, VIGIL.pool - db.vigil.paidStyx), poolLeftUsd: Math.max(0, VIGIL.pool - db.vigil.paidStyx) * db.styxPrice, endsIn: Math.max(0, VIGIL.end - Date.now()), startsIn: Math.max(0, VIGIL.start - Date.now()) },
     pyre: { tollUsd: pyre.tollUsd, burnedStyx: pyre.burnedStyx, burnedUsd: pyre.burnedUsd, epochs: pyre.epochs, minUsd: PYRE_MIN_USD, bps: { shield: 30, send: 30, unshield: 30, redeem: 50 }, burns: pyre.burns.slice(0, 8).map((b) => ({ id: b.id.slice(0, 8) + '…' + b.id.slice(-4), usd: b.usd, styx: b.styx, px: b.px, ts: b.ts, epoch: b.epoch })) },
     shielded: { totalValue: sh.totalValue, notes: sh.notes, nullifiers: sh.nullifiers, txCount: sh.txCount, root: sh.root },
     feed: sh.feed.slice(0, 10).map((t) => ({ sig: t.sig.slice(0, 6) + '…' + t.sig.slice(-4), type: t.type, publicAmount: t.publicAmount || null, ts: t.ts })),
   };
 }
-function account(addr) { const w = W(addr); const now = Date.now(); return { wallet: addr, usdg: w.usdg, styx: w.styx, susd: w.susd, priv: w.priv, deposited: w.deposited || 0, bonds: bondView(w, now), ref: w.ref || null, souls: w.souls || 0, earned: w.earned || 0, vigil: vigilView(w, now), queue: db.queue.filter((q) => q.wallet === addr.toLowerCase()).slice(0, 10) }; }
+function account(addr) { const w = W(addr); const now = Date.now(); return { wallet: addr, usdg: w.usdg, styx: w.styx, susd: w.susd, priv: w.priv, deposited: w.deposited || 0, dark: darkView(w), bonds: bondView(w, now), ref: w.ref || null, souls: w.souls || 0, earned: w.earned || 0, vigil: vigilView(w, now), queue: db.queue.filter((q) => q.wallet === addr.toLowerCase()).slice(0, 10) }; }
 
 // ---------- http ----------
 const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml', '.png': 'image/png' };
@@ -298,6 +336,19 @@ http.createServer(async (req, res) => {
       return json(res, 200, { ok: true, claimed: L.amt, memo: L.memo, ...account(d.wallet) });
     }
     if (u === '/api/seal') { return json(res, 200, { ok: true, viewKey: viewKeyOf(d.wallet) }); }
+    if (u === '/api/dark/open') { // shielded sUSD -> a hidden position
+      const sym = String(d.sym || '').toUpperCase(); if (!DARK_FEED[sym]) return json(res, 200, { error: 'unknown market' });
+      if (!tapeFresh(sym)) return json(res, 200, { error: sym + ' tape is closed right now — try when the market is open' });
+      const side = d.side === 'short' ? 'short' : 'long'; const x = num(d.amount, w.priv); if (!x) return json(res, 200, { error: 'not enough shielded sUSD' }); if (x < 10) return json(res, 200, { error: 'minimum 10 sUSD' });
+      if (x > DARK.maxPos) return json(res, 200, { error: 'max ' + DARK.maxPos + ' sUSD per position' }); if (db.dark.oi + x > DARK.maxOi) return json(res, 200, { error: 'the pool is full for now' });
+      const fee = x * DARK.fee; const notional = x - fee; const px = TAPE[sym].px;
+      w.priv -= x; pyre.tollUsd += fee; db.dark.fees += fee; db.dark.oi += notional; db.dark.open++; db.dark.opened++; db.dark.volume += notional;
+      const p = { id: base58(randomBytes(6)), sym, side, notional, entry: px, ts: Date.now() }; w.dark = w.dark || []; w.dark.push(p); hist(w, { type: 'dark-open', amt: x, memo: sym + ' ' + side });
+      sh.nullifiers++; const { C, note } = shieldNote(notional, shKeys[randomInt(0, shKeys.length)].pub); pushShTx({ sig: base58(randomBytes(32)), type: 'private', nullifier: nullifierOf('d', sh.notes), commitment: C, note, proof: simProof(), ts: Date.now() }); save();
+      return json(res, 200, { ok: true, opened: p, ...account(d.wallet) });
+    }
+    if (u === '/api/dark/close') { const p = (w.dark || []).find((x) => x.id === d.id); if (!p) return json(res, 200, { error: 'no such position' }); if (!tapeFresh(p.sym)) return json(res, 200, { error: p.sym + ' tape is closed — closes settle when the market is open' });
+      const r = closePos(w, p, TAPE[p.sym].px, 'user'); save(); return json(res, 200, { ok: true, closed: r, ...account(d.wallet) }); }
     if (u === '/api/shield') { // public sUSD -> private
       const s = num(d.amount, w.susd); if (!s) return json(res, 200, { error: 'nothing to shield' });
       const sn = toll('shield', s, w); w.susd -= s; w.priv += sn; sh.totalValue += sn; hist(w, { type: 'shield', amt: sn }); const { C, note } = shieldNote(sn, shKeys[0].pub);
