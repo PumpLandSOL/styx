@@ -48,7 +48,7 @@ function renderMetrics() {
   $('s-sup').textContent = big(M.susdSupply) + ' sUSD';
   $('s-shd').textContent = big(M.shielded.totalValue) + ' sUSD';
   if (M.mint) { $('cabar').style.display = 'flex'; $('ca-mint').textContent = M.mint; }
-  if (M.treasury) { $('trbar').style.display = 'flex'; $('tr-addr').textContent = M.treasury; }
+  
   if (M.dark) { const D = M.dark;
     $('tape').innerHTML = D.markets.map((m) => `<div class="m ${m.fresh ? '' : 'closed'}"><div class="s">${m.sym}</div><div class="p">${m.px ? '$' + fmt(m.px, m.px < 10 ? 4 : 2) : '—'}</div><div class="st">${m.fresh ? 'live' : 'closed'}</div></div>`).join('');
     $('dk-open').textContent = fmt(D.open, 0); $('dk-vol').textContent = '$' + big(D.volume); $('dk-fees').textContent = '$' + fmt(D.fees, 2);
@@ -60,7 +60,7 @@ function renderMetrics() {
     $('v-apy').textContent = fmt(V.apy * 100, 0) + '%'; $('v-boost').textContent = V.boost && V.boost.live ? '⚡ boosted from ' + fmt(V.baseApy * 100, 0) + '% · ' + dur(V.boost.endsIn) + ' left' : ''; $('v-staked').textContent = big(V.staked) + ' / ' + big(V.cap);
     $('v-pool').textContent = big(V.poolLeft) + ' STYX'; $('v-ends').textContent = V.startsIn > 0 ? 'opens in ' + dur(V.startsIn) : V.live ? dur(V.endsIn) : 'ended'; $('v-n').textContent = fmt(V.stakers, 0);
   }
-  if (M.chain && M.chain.ok) $('tr-chain').textContent = '· on-chain: ' + fmt(M.chain.treasuryUsdg, 2) + ' USDG · ' + big(M.chain.treasuryStyx) + ' STYX';
+  
   if (M.ferry) { const Fm = M.ferry;
     $('ferryboard').innerHTML = Fm.board.map((b, i) => `<div class="r"><span class="ty">#${i + 1}</span><span class="sg">${b.who}</span><span class="am">${b.souls} referred · ${fmt(b.earned, 2)} sUSD</span></div>`).join('') || '<div class="r"><span class="sg">no referrals yet — write the first Note</span></div>';
   }
@@ -228,7 +228,7 @@ async function doAct(url, payload, msg) {
 }
 $('ferrycopy').onclick = () => { navigator.clipboard.writeText(location.origin + '/?ref=' + wallet); toast('referral link copied'); };
 $('ca-copy').onclick = () => { navigator.clipboard.writeText(M.mint); toast('copied'); };
-$('tr-copy').onclick = () => { navigator.clipboard.writeText(M.treasury); toast('copied'); };
+
 
 // deep-link / capture: ?w=<address> opens a wallet's ledger, &tab=<mint|shield|send|redeem>, &reveal=1
 (function () { const q = new URLSearchParams(location.search); const hm = /claim=([1-9A-HJ-NP-Za-km-z]+)/.exec(location.hash || ''); if (hm) { claimSecret = hm[1]; tab = 'claim'; setTimeout(() => $('demo').scrollIntoView(), 400); }
