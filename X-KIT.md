@@ -183,7 +183,7 @@ Also live:
 → nothing printed to mint: the algo slice buys & burns $STYX
 → no hot key: withdrawals paid by hand from cold storage
 
-Sep 11 → Oct 11. 5M $STYX pool. 250K sUSD cap.
+Open now → Oct 11. 5M $STYX pool. 250K sUSD cap.
 
 styxrh.xyz
 

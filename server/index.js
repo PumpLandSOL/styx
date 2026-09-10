@@ -98,7 +98,7 @@ const VIGIL = {
   apy: +(process.env.VIGIL_APY || 0.40),               // 40% APY, in sUSD terms
   pool: +(process.env.VIGIL_POOL || 5_000_000),         // STYX set aside by the treasury for the whole season
   cap: +(process.env.VIGIL_CAP || 250_000),             // max sUSD staked protocol-wide
-  start: +(process.env.VIGIL_START || 1789084800000),   // 2026-09-11 00:00 UTC
+  start: +(process.env.VIGIL_START || 1),                // OPEN NOW (2026-09-09)
   end: +(process.env.VIGIL_END || 1791676800000),       // 2026-10-11 00:00 UTC — 30 days, then it is over
 };
 if (!db.vigil) db.vigil = { staked: 0, paidStyx: 0, paidUsd: 0, stakers: 0 };
