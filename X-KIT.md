@@ -250,3 +250,15 @@ sUSD is the third thing: a private dollar with a floor. 55% hard USDG minimum, v
 styxrh.xyz
 
 How-to (hands-on): `brand/styx-howto-15s.mp4` — 15s drawn walkthrough of deposit → mint → shield → pay-by-link with a live cursor; not a screen recording.
+
+### How-to video tweet (275 chars)
+How to cross, in 15 seconds:
+
+01 Deposit USDG from your wallet. It lands in the treasury, verified on-chain
+02 Mint sUSD. 90% collateral, 10% buys & burns $STYX
+03 Shield it. Your balance reads ████
+04 Send it as a link. No address, no name
+
+That's private money.
+
+styxrh.xyz
