@@ -1,0 +1,55 @@
+<!doctype html><html><head><meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;800&family=EB+Garamond:ital@1&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>html,body{margin:0;background:#080706;overflow:hidden}canvas{display:block}</style>
+</head><body><canvas id="c" width="1280" height="720"></canvas>
+<script>
+// BONDS — 10s deterministic hype: USDG pours into the reserve, $STYX comes out at a discount, the vault fills.
+const W = 1280, H = 720, cv = document.getElementById('c'), g = cv.getContext('2d');
+const GOLD = '#c9a25e', GOLD2 = '#e9cf95', INK = '#e9ddc6', VERD = '#62a187', VERD2 = '#8fd1b4', RED = '#d8503a', MUT = '#8f8470';
+function rng(seed) { let s = seed >>> 0; return () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; }; }
+const R = rng(41);
+const MOTES = Array.from({ length: 140 }, () => ({ x: R(), y: R(), sp: 0.02 + R() * 0.05, sz: 1 + R() * 2.2, ph: R() * 6.28, hot: R() }));
+const DROPS = Array.from({ length: 40 }, (_, i) => ({ t0: 2.5 + i * 0.09, x: 560 + (R() - .5) * 120, sp: 0.9 + R() * .3 }));
+const ease = (k) => k < .5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const seg = (t, a, b) => clamp((t - a) / (b - a), 0, 1);
+const fadeIO = (t, a, b, f = .35) => Math.min(seg(t, a, a + f), 1 - seg(t, b - f, b));
+function bg(t) { g.fillStyle = '#080706'; g.fillRect(0, 0, W, H); const gl = g.createRadialGradient(W / 2, H / 2, 40, W / 2, H / 2, 760); gl.addColorStop(0, 'rgba(201,162,94,.10)'); gl.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = gl; g.fillRect(0, 0, W, H); }
+function motes(t, a) { for (const e of MOTES) { const y = ((e.y - t * e.sp) % 1 + 1) % 1; g.fillStyle = e.hot > .5 ? `rgba(143,209,180,${a * .6})` : `rgba(233,207,149,${a * .6})`; g.beginPath(); g.arc((e.x + Math.sin(t + e.ph) * .01) * W, y * H, e.sz, 0, 6.28); g.fill(); } }
+function txt(s, x, y, size, color, font = 'Cinzel', weight = 800, align = 'center', ls = 0) { g.font = `${weight} ${size}px '${font}'`; g.fillStyle = color; g.textAlign = align; g.textBaseline = 'middle'; g.letterSpacing = ls + 'px'; g.fillText(s, x, y); g.letterSpacing = '0px'; }
+function vignette() { const v = g.createRadialGradient(W / 2, H / 2, 300, W / 2, H / 2, 820); v.addColorStop(0, 'rgba(0,0,0,0)'); v.addColorStop(1, 'rgba(0,0,0,.6)'); g.fillStyle = v; g.fillRect(0, 0, W, H); }
+function vault(x, y, w, h, fill, a) { g.save(); g.globalAlpha = a; g.strokeStyle = GOLD; g.lineWidth = 3; g.shadowColor = 'rgba(201,162,94,.5)'; g.shadowBlur = 20; g.strokeRect(x, y, w, h); g.shadowBlur = 0;
+  const fh = h * fill; const grd = g.createLinearGradient(0, y + h - fh, 0, y + h); grd.addColorStop(0, '#8fd1b4'); grd.addColorStop(1, '#3d5c4f'); g.fillStyle = grd; g.fillRect(x + 3, y + h - fh, w - 6, fh - 3);
+  for (let i = 1; i < 4; i++) { g.strokeStyle = 'rgba(201,162,94,.25)'; g.lineWidth = 1; g.beginPath(); g.moveTo(x, y + h * i / 4); g.lineTo(x + 14, y + h * i / 4); g.stroke(); } g.restore(); }
+function coin(x, y, a, r = 9, col = GOLD2) { g.save(); g.globalAlpha = a; g.shadowColor = col; g.shadowBlur = 14; g.fillStyle = col; g.beginPath(); g.arc(x, y, r, 0, 6.28); g.fill(); g.restore(); }
+function tag(s, x, y, a, col) { g.save(); g.globalAlpha = a; g.font = "800 22px 'Cinzel'"; const w = g.measureText(s).width + 36; g.fillStyle = col; g.beginPath(); g.roundRect(x - w / 2, y - 22, w, 44, 6); g.fill(); txt(s, x, y + 1, 22, '#0a0807', 'Cinzel', 800, 'center', 2); g.restore(); }
+function num(n) { return Math.floor(n).toLocaleString('en-US'); }
+
+window.__seek = function (t) {
+  bg(t); motes(t, t < 9 ? .8 : .8 * (1 - seg(t, 9, 10))); vignette();
+  // 0–2.2 hook
+  if (t < 2.3) { const a = fadeIO(t, .2, 2.3, .35); g.globalAlpha = a; txt('$STYX IS ON SALE.', W / 2, H / 2 - 40, 78, INK, 'Cinzel', 800, 'center', 6); txt('20% below market. for anyone who brings USDG.', W / 2, H / 2 + 44, 30, GOLD2, 'EB Garamond', 400); g.globalAlpha = 1; }
+  // 2.2–6.4 bonds: USDG pours into the reserve vault, STYX comes out
+  if (t >= 2.2 && t < 6.5) {
+    const a = fadeIO(t, 2.2, 6.5, .3); const k = seg(t, 2.5, 6.0);
+    g.globalAlpha = a; txt('BONDS', W / 2, 100, 64, GOLD2, 'Cinzel', 800, 'center', 12); txt('deposit USDG → the reserve fills → you take $STYX at a discount, vested 5 days', W / 2, 160, 24, MUT, 'EB Garamond', 400); g.globalAlpha = 1;
+    vault(430, 250, 260, 300, 0.15 + 0.8 * k, a);
+    txt('sUSD RESERVE', 560, 590, 16, VERD, 'JetBrains Mono', 500, 'center', 5); txt(num(1125000 + 5000 * k) + ' USDG', 560, 625, 24, VERD2, 'Cinzel', 700, 'center', 1);
+    for (const d of DROPS) { const kk = seg(t, d.t0, d.t0 + .55 / d.sp); if (kk <= 0 || kk >= 1) continue; coin(d.x, 200 + ease(kk) * 60 + kk * 80, a * (1 - kk * .3), 7, VERD2); }
+    g.globalAlpha = a; txt('USDG in', 560, 205, 18, MUT, 'JetBrains Mono', 500, 'center', 3); g.globalAlpha = 1;
+    // STYX out to the right
+    const cyc = (t * 1.4) % 1; if (t > 3.0) { coin(720 + cyc * 180, 400 - Math.sin(cyc * Math.PI) * 60, a * (1 - cyc * .2), 10, GOLD2); }
+    g.globalAlpha = a; txt('$STYX out', 960, 330, 18, MUT, 'JetBrains Mono', 500, 'center', 3);
+    txt('−20%', 960, 400, 74, GOLD2, 'Cinzel', 800, 'center', 2); txt('vs market', 960, 452, 18, MUT, 'JetBrains Mono', 500, 'center', 3);
+    txt('nothing minted · every bond over-collateralizes sUSD', 960, 520, 18, VERD, 'EB Garamond', 400); g.globalAlpha = 1;
+    tag('5-DAY VEST', 960, 590, a, GOLD);
+  }
+  // 6.4–8.4 boost
+  if (t >= 6.4 && t < 8.5) { const a = fadeIO(t, 6.4, 8.5, .3); g.globalAlpha = a; txt('AND THE VIGIL', W / 2, H / 2 - 110, 30, MUT, 'JetBrains Mono', 500, 'center', 8); txt('40%', W / 2 - 220, H / 2, 90, MUT, 'Cinzel', 800, 'center', 2); txt('→', W / 2 - 40, H / 2, 70, GOLD, 'Cinzel', 800, 'center'); g.globalAlpha = a * seg(t, 6.9, 7.3); g.shadowColor = 'rgba(143,209,180,.7)'; g.shadowBlur = 36; txt('100%', W / 2 + 170, H / 2, 110, VERD2, 'Cinzel', 800, 'center', 2); g.shadowBlur = 0; g.globalAlpha = a; txt('APY on staked sUSD · this week only · paid from a fixed $STYX pool', W / 2, H / 2 + 100, 24, MUT, 'EB Garamond', 400); g.globalAlpha = 1; }
+  // 8.4–10 outro
+  if (t >= 8.4) { const a = seg(t, 8.4, 8.8); g.globalAlpha = a; txt('STYX', W / 2, H / 2 - 30, 96, GOLD, 'Cinzel', 800, 'center', 22); txt('styxrh.xyz/?tab=bond', W / 2, H / 2 + 60, 30, GOLD2, 'JetBrains Mono', 500, 'center', 2); txt('deposit USDG · bond · stake', W / 2, H / 2 + 110, 20, MUT, 'JetBrains Mono', 500, 'center', 3); g.globalAlpha = 1; }
+  return true;
+};
+window.__ready = document.fonts.ready.then(() => { __seek(0); return true; });
+</script></body></html>

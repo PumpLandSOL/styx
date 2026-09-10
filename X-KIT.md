@@ -292,3 +292,20 @@ Anyone who claims your Note or joins through your link is your referral. You ear
 Not a one-time bonus. A cut of their crossings for life.
 
 styxrh.xyz/?ref=you
+
+
+---
+
+## BONDS + VIGIL BOOST
+Video: `brand/styx-bonds-10s.mp4` (10s, rendered) · deposit link: styxrh.xyz/?tab=bond
+
+### Tweet (358 chars)
+$STYX is on sale. Bonds are live.
+
+Deposit USDG → take $STYX at 20% below market, vested over 5 days. Your USDG goes straight into the sUSD reserve and mints nothing. Every bond makes the dollar more collateralized.
+
+And the Vigil is boosted: 40% → 100% APY on staked sUSD this week.
+
+Daily capacity is capped. First come, first served.
+
+styxrh.xyz/?tab=bond

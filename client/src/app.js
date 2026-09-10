@@ -49,8 +49,11 @@ function renderMetrics() {
   $('s-shd').textContent = big(M.shielded.totalValue) + ' sUSD';
   if (M.mint) { $('cabar').style.display = 'flex'; $('ca-mint').textContent = M.mint; }
   if (M.treasury) { $('trbar').style.display = 'flex'; $('tr-addr').textContent = M.treasury; }
+  if (M.bonds) { const Bd = M.bonds;
+    $('bd-price').textContent = '$' + fmt(Bd.price, 6); $('bd-market').textContent = '$' + fmt(Bd.market, 6); $('bd-left').textContent = '$' + fmt(Bd.leftToday, 0) + ' / $' + fmt(Bd.capUsd, 0); $('bd-sold').textContent = '$' + fmt(Bd.soldUsd, 0) + ' · ' + big(Bd.soldStyx) + ' STYX';
+  }
   if (M.vigil) { const V = M.vigil;
-    $('v-apy').textContent = fmt(V.apy * 100, 0) + '%'; $('v-staked').textContent = big(V.staked) + ' / ' + big(V.cap);
+    $('v-apy').textContent = fmt(V.apy * 100, 0) + '%'; $('v-boost').textContent = V.boost && V.boost.live ? '⚡ boosted from ' + fmt(V.baseApy * 100, 0) + '% · ' + dur(V.boost.endsIn) + ' left' : ''; $('v-staked').textContent = big(V.staked) + ' / ' + big(V.cap);
     $('v-pool').textContent = big(V.poolLeft) + ' STYX'; $('v-ends').textContent = V.startsIn > 0 ? 'opens in ' + dur(V.startsIn) : V.live ? dur(V.endsIn) : 'ended'; $('v-n').textContent = fmt(V.stakers, 0);
   }
   if (M.chain && M.chain.ok) $('tr-chain').textContent = '· on-chain: ' + fmt(M.chain.treasuryUsdg, 2) + ' USDG · ' + big(M.chain.treasuryStyx) + ' STYX';
@@ -106,6 +109,22 @@ function renderPanel() {
       <button class="btn wide" id="act" style="margin-top:14px">Claim into my shielded balance</button>`;
     api('/api/note/peek', { secret: claimSecret }).then((r) => { if (r.error) { $('cl-amt').textContent = r.error; $('act').disabled = true; return; } $('cl-amt').textContent = r.claimed ? 'already claimed' : fmt(r.amt, 2) + ' sUSD'; $('cl-memo').textContent = r.memo || '—'; if (r.claimed) $('act').disabled = true; });
     $('act').onclick = () => doAct('/api/note/claim', { secret: claimSecret, amount: 1 }, (r) => { history.replaceState(null, '', location.pathname); tab = 'send'; renderPanel(); return `claimed ${fmt(r.claimed, 2)} sUSD — privately`; });
+  } else if (tab === 'bond') {
+    const Bd = M && M.bonds, me = A && A.bonds;
+    p.innerHTML = `<div class="note"><b>Bond USDG for $STYX at ${Bd ? fmt(Bd.discount * 100, 0) : 20}% below market.</b> Vests over ${Bd ? Bd.vestDays : 5} days. Your USDG goes to the reserve and mints nothing. ${Bd && !Bd.open ? '<b>Bonds are closed.</b>' : ''}</div>
+      <div class="field"><input id="in" type="number" placeholder="50.00 minimum" min="50"><span class="u">USDG</span><span class="mx" id="mx">MAX</span></div>
+      <div class="kv"><span>USDG on ledger</span><b>${A ? fmt(A.usdg, 2) : '—'}</b></div>
+      <div class="kv"><span>bond price · market</span><b>${Bd ? '$' + fmt(Bd.price, 6) + ' · $' + fmt(Bd.market, 6) : '—'}</b></div>
+      <div class="kv"><span>you receive</span><b id="o1">—</b></div>
+      <div class="kv"><span>vesting · claimable now</span><b>${me ? big(me.pending) + ' · ' + big(me.claimable) + ' STYX' : '—'}</b></div>
+      <div style="display:flex;gap:10px;margin-top:14px"><button class="btn fill" id="act" style="flex:1.4">Bond USDG</button><button class="btn ghost" id="act2" style="flex:1">Claim vested</button><button class="btn ghost" id="act3" style="flex:1">Withdraw STYX</button></div>
+      <div class="note" style="margin-top:12px;margin-bottom:0">No USDG yet? <a href="#" id="go-dep" style="color:var(--gold)">Deposit first →</a></div>`;
+    $('mx').onclick = () => { if (A) $('in').value = A.usdg; };
+    $('in').oninput = () => { const x = +$('in').value || 0; $('o1').textContent = Bd ? big(x / Bd.price) + ' STYX (' + big(x / Bd.market) + ' at market)' : '—'; };
+    $('act').onclick = () => doAct('/api/bond', { amount: +$('in').value }, (r) => `bonded ${fmt(r.bonded, 2)} USDG → ${big(r.styxOut)} STYX vesting`);
+    $('act2').onclick = () => doAct('/api/bond/claim', { amount: 1 }, (r) => `claimed ${big(r.claimedStyx)} STYX`);
+    $('act3').onclick = () => doAct('/api/withdraw', { asset: 'STYX', amount: A ? A.styx : 0 }, (r) => `queued ${big(r.queued.amt)} STYX for payout`);
+    $('go-dep').onclick = (e) => { e.preventDefault(); tab = 'deposit'; document.querySelectorAll('.tabs button').forEach((x) => x.classList.toggle('on', x.dataset.tab === 'deposit')); renderPanel(); };
   } else if (tab === 'deposit') {
     p.innerHTML = `<div class="note">Send <b>USDG on Robinhood Chain</b> to the treasury and it is credited to your ledger once the receipt confirms. <b>Every deposited dollar sits in the treasury address</b> — see the on-chain balance in the Treasury bar below.</div>
       <div class="field"><input id="in" type="number" placeholder="50.00 minimum" min="50"><span class="u">USDG</span></div>
@@ -163,7 +182,7 @@ function renderPanel() {
       <div class="kv"><span>Public sUSD</span><b>${A ? fmt(A.susd, 2) : '—'}</b></div>
       <div class="kv"><span>USDG on ledger</span><b>${A ? fmt(A.usdg, 2) : '—'}</b></div>
       <div style="display:flex;gap:10px;margin-top:14px"><button class="btn ghost" id="act2" style="flex:1">Unshield</button><button class="btn" id="act" style="flex:1">Redeem</button><button class="btn ghost" id="act3" style="flex:1">Withdraw USDG</button></div>
-      ${A && A.queue && A.queue.length ? '<div class="note" style="margin-top:14px">' + A.queue.map((q) => '<div class="kv"><span>withdraw ' + fmt(q.amt, 2) + ' USDG · ' + q.id + '</span><b>' + (q.status === 'paid' ? 'paid' + (q.tx ? ' · ' + q.tx.slice(0, 10) + '…' : '') : 'queued · treasury pays within 24h') + '</b></div>').join('') + '</div>' : ''}`;
+      ${A && A.queue && A.queue.length ? '<div class="note" style="margin-top:14px">' + A.queue.map((q) => '<div class="kv"><span>withdraw ' + fmt(q.amt, 2) + ' ' + (q.asset || 'USDG') + ' · ' + q.id + '</span><b>' + (q.status === 'paid' ? 'paid' + (q.tx ? ' · ' + q.tx.slice(0, 10) + '…' : '') : 'queued · treasury pays within 24h') + '</b></div>').join('') + '</div>' : ''}`;
     $('mx').onclick = () => { if (A) $('in').value = A.susd; };
     $('act').onclick = () => doAct('/api/redeem', { amount: +$('in').value }, (r) => `redeemed ${fmt(r.redeemed, 0)} sUSD`);
     $('act2').onclick = () => doAct('/api/unshield', { amount: +$('in').value }, (r) => `unshielded ${fmt(r.unshielded, 2)} sUSD`);

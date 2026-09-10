@@ -113,10 +113,12 @@ const VIGIL = {
   end: +(process.env.VIGIL_END || 1791676800000),       // 2026-10-11 00:00 UTC — 30 days, then it is over
 };
 if (!db.vigil) db.vigil = { staked: 0, paidStyx: 0, paidUsd: 0, stakers: 0 };
+const VIGIL_BOOST = { apy: +(process.env.VIGIL_BOOST_APY || 1.00), end: +(process.env.VIGIL_BOOST_END || 1789603200000) };   // 100% APY through 2026-09-17, then back to VIGIL.apy
+const vigilApy = (now) => now < VIGIL_BOOST.end ? VIGIL_BOOST.apy : VIGIL.apy;
 function vigilLive(now) { return now >= VIGIL.start && now < VIGIL.end && db.vigil.paidStyx < VIGIL.pool; }
 function accrue(u, now) {   // reward accrues in sUSD terms per second while the vigil is live
   if (!u.stake) return; const t0 = u.stakeT || now; const t1 = Math.min(now, VIGIL.end);
-  if (t1 > t0 && vigilLive(t0)) u.stakeAcc = (u.stakeAcc || 0) + u.stake * VIGIL.apy * (t1 - t0) / 31536000000;
+  if (t1 > t0 && vigilLive(t0)) u.stakeAcc = (u.stakeAcc || 0) + u.stake * vigilApy(t0) * (t1 - t0) / 31536000000;
   u.stakeT = now;
 }
 function vigilView(u, now) { accrue(u, now); const px = Math.max(0.000001, db.styxPrice); return { staked: u.stake || 0, accruedUsd: u.stakeAcc || 0, accruedStyx: (u.stakeAcc || 0) / px, since: u.stakeSince || null }; }
@@ -132,6 +134,19 @@ const hist = (w, e) => { w.hist = w.hist || []; w.hist.unshift({ ts: Date.now(),
 const linkId = (secret) => base58(sha('note|' + secret));
 function viewKeyOf(addr) { const mac = createHmac('sha256', db.viewSalt).update('seal|' + addr.toLowerCase()).digest().subarray(0, 16); return base58(Buffer.concat([Buffer.from(addr.slice(2), 'hex'), mac])); }
 function walletOfViewKey(key) { try { let n = 0n; for (const ch of key) { const i = B58.indexOf(ch); if (i < 0) return null; n = n * 58n + BigInt(i); } let hex = n.toString(16); if (hex.length % 2) hex = '0' + hex; let buf = Buffer.from(hex, 'hex'); let lead = 0; for (const ch of key) { if (ch === '1') lead++; else break; } buf = Buffer.concat([Buffer.alloc(lead), buf]); if (buf.length !== 36) return null; const addr = '0x' + buf.subarray(0, 20).toString('hex'); return viewKeyOf(addr) === key ? addr : null; } catch (e) { return null; } }
+
+// ---------- BONDS: USDG in, discounted $STYX out, vested. The USDG stays in reserve and mints NOTHING, so every bond over-collateralizes sUSD. ----------
+const BOND = {
+  discount: +(process.env.BOND_DISCOUNT || 0.20),          // 20% below market
+  vestMs: +(process.env.BOND_VEST_DAYS || 5) * 864e5,      // linear vest
+  capUsd: +(process.env.BOND_CAP_USD || 5000),             // per-day capacity
+  end: +(process.env.BOND_END || 1791676800000),  // same close as the vigil
+  min: 50,
+};
+if (!db.bonds) db.bonds = { soldUsd: 0, soldStyx: 0, n: 0, day: 0, dayUsd: 0 };
+function bondDay() { const d = Math.floor(Date.now() / 864e5); if (db.bonds.day !== d) { db.bonds.day = d; db.bonds.dayUsd = 0; } return db.bonds; }
+const bondPrice = () => Math.max(0.000001, db.styxPrice) * (1 - BOND.discount);
+function bondView(u, now) { const list = (u.bonds || []).map((b) => { const k = Math.min(1, Math.max(0, (now - b.ts) / BOND.vestMs)); const vested = b.styx * k; return { id: b.id, usd: b.usd, styx: b.styx, price: b.price, ts: b.ts, vestEnd: b.ts + BOND.vestMs, vested, claimable: Math.max(0, vested - b.claimed), claimed: b.claimed }; }); return { list, claimable: list.reduce((x, b) => x + b.claimable, 0), pending: list.reduce((x, b) => x + (b.styx - b.claimed), 0) }; }
 
 // ---------- privacy primitives (real) ----------
 const shKeys = [];
@@ -189,14 +204,14 @@ function metrics() {
     cr: db.cr, collateralUsd: db.collateralUsd, backingRatio: backing,
     styxPrice: db.styxPrice, styxSupply: db.styxSupply, styxMarketCap: db.styxPrice * db.styxSupply,
     minDeposit: MIN_DEPOSIT, chain: { ok: CHAIN.ok, block: CHAIN.block, treasuryUsdg: CHAIN.treasuryUsdg, treasuryStyx: CHAIN.treasuryStyx, lastRead: CHAIN.lastRead, usdg: USDG.addr, rpc: RPCS[0] },
-    deposits: { usdg: db.treasuryIn.usdg, n: db.treasuryIn.n }, ferry: { cut: FERRY_CUT, souls: db.ferry.souls, paid: db.ferry.paid, board: ferrymen() }, notes: { created: Object.keys(db.links).length, open: Object.values(db.links).filter((L) => !L.claimed).length, claimed: Object.values(db.links).filter((L) => L.claimed).length }, queue: { open: db.queue.filter((q) => q.status === 'queued').length, openUsd: db.queue.filter((q) => q.status === 'queued').reduce((a, q) => a + q.amt, 0), paid: db.queue.filter((q) => q.status === 'paid').length },
-    vigil: { ...VIGIL, live: vigilLive(Date.now()), staked: db.vigil.staked, stakers: db.vigil.stakers, paidStyx: db.vigil.paidStyx, paidUsd: db.vigil.paidUsd, poolLeft: Math.max(0, VIGIL.pool - db.vigil.paidStyx), poolLeftUsd: Math.max(0, VIGIL.pool - db.vigil.paidStyx) * db.styxPrice, endsIn: Math.max(0, VIGIL.end - Date.now()), startsIn: Math.max(0, VIGIL.start - Date.now()) },
+    deposits: { usdg: db.treasuryIn.usdg, n: db.treasuryIn.n }, bonds: (() => { const B = bondDay(); return { discount: BOND.discount, vestDays: BOND.vestMs / 864e5, capUsd: BOND.capUsd, leftToday: Math.max(0, BOND.capUsd - B.dayUsd), soldUsd: B.soldUsd, soldStyx: B.soldStyx, n: B.n, price: bondPrice(), market: db.styxPrice, end: BOND.end, open: Date.now() <= BOND.end, min: BOND.min }; })(), ferry: { cut: FERRY_CUT, souls: db.ferry.souls, paid: db.ferry.paid, board: ferrymen() }, notes: { created: Object.keys(db.links).length, open: Object.values(db.links).filter((L) => !L.claimed).length, claimed: Object.values(db.links).filter((L) => L.claimed).length }, queue: { open: db.queue.filter((q) => q.status === 'queued').length, openUsd: db.queue.filter((q) => q.status === 'queued').reduce((a, q) => a + q.amt, 0), paid: db.queue.filter((q) => q.status === 'paid').length },
+    vigil: { ...VIGIL, apy: vigilApy(Date.now()), baseApy: VIGIL.apy, boost: { apy: VIGIL_BOOST.apy, end: VIGIL_BOOST.end, live: Date.now() < VIGIL_BOOST.end, endsIn: Math.max(0, VIGIL_BOOST.end - Date.now()) }, live: vigilLive(Date.now()), staked: db.vigil.staked, stakers: db.vigil.stakers, paidStyx: db.vigil.paidStyx, paidUsd: db.vigil.paidUsd, poolLeft: Math.max(0, VIGIL.pool - db.vigil.paidStyx), poolLeftUsd: Math.max(0, VIGIL.pool - db.vigil.paidStyx) * db.styxPrice, endsIn: Math.max(0, VIGIL.end - Date.now()), startsIn: Math.max(0, VIGIL.start - Date.now()) },
     pyre: { tollUsd: pyre.tollUsd, burnedStyx: pyre.burnedStyx, burnedUsd: pyre.burnedUsd, epochs: pyre.epochs, minUsd: PYRE_MIN_USD, bps: { shield: 30, send: 30, unshield: 30, redeem: 50 }, burns: pyre.burns.slice(0, 8).map((b) => ({ id: b.id.slice(0, 8) + '…' + b.id.slice(-4), usd: b.usd, styx: b.styx, px: b.px, ts: b.ts, epoch: b.epoch })) },
     shielded: { totalValue: sh.totalValue, notes: sh.notes, nullifiers: sh.nullifiers, txCount: sh.txCount, root: sh.root },
     feed: sh.feed.slice(0, 10).map((t) => ({ sig: t.sig.slice(0, 6) + '…' + t.sig.slice(-4), type: t.type, publicAmount: t.publicAmount || null, ts: t.ts })),
   };
 }
-function account(addr) { const w = W(addr); const now = Date.now(); return { wallet: addr, usdg: w.usdg, styx: w.styx, susd: w.susd, priv: w.priv, deposited: w.deposited || 0, ref: w.ref || null, souls: w.souls || 0, earned: w.earned || 0, vigil: vigilView(w, now), queue: db.queue.filter((q) => q.wallet === addr.toLowerCase()).slice(0, 10) }; }
+function account(addr) { const w = W(addr); const now = Date.now(); return { wallet: addr, usdg: w.usdg, styx: w.styx, susd: w.susd, priv: w.priv, deposited: w.deposited || 0, bonds: bondView(w, now), ref: w.ref || null, souls: w.souls || 0, earned: w.earned || 0, vigil: vigilView(w, now), queue: db.queue.filter((q) => q.wallet === addr.toLowerCase()).slice(0, 10) }; }
 
 // ---------- http ----------
 const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml', '.png': 'image/png' };
@@ -227,9 +242,21 @@ http.createServer(async (req, res) => {
     }
     if (u === '/api/dev/faucet' && process.env.DEV_FAUCET === '1') { w.usdg += num(d.amount) || 0; save(); return json(res, 200, { ok: true, ...account(d.wallet) }); }   // LOCAL TESTING ONLY — never set DEV_FAUCET in production
     if (u === '/api/deposit') { try { const r = await creditDeposit(d.wallet.toLowerCase(), d.tx); return json(res, 200, { ok: true, ...r, ...account(d.wallet) }); } catch (e) { return json(res, 200, { error: String(e.message || e) }); } }
-    if (u === '/api/withdraw') { // USDG ledger -> payout queue (treasury pays by hand, then marks it paid)
-      const x = num(d.amount, w.usdg); if (!x) return json(res, 200, { error: 'nothing to withdraw' }); if (x < 1) return json(res, 200, { error: 'minimum 1 USDG' });
-      w.usdg -= x; const q = { id: base58(randomBytes(6)), wallet: d.wallet.toLowerCase(), amt: x, ts: Date.now(), status: 'queued', tx: null }; db.queue.unshift(q); if (db.queue.length > 500) db.queue.pop(); save();
+    if (u === '/api/bond') { // USDG ledger -> discounted STYX, vested. USDG stays in reserve. Nothing minted.
+      const now = Date.now(); if (now > BOND.end) return json(res, 200, { error: 'bonds are closed' });
+      const x = num(d.amount, w.usdg); if (!x) return json(res, 200, { error: 'not enough USDG — deposit first' }); if (x < BOND.min) return json(res, 200, { error: 'minimum bond is ' + BOND.min + ' USDG' });
+      const B = bondDay(); if (B.dayUsd + x > BOND.capUsd) return json(res, 200, { error: 'today\'s bond capacity is spent — ' + (BOND.capUsd - B.dayUsd).toFixed(2) + ' USDG left' });
+      const price = bondPrice(); const styx = x / price;
+      w.usdg -= x; db.collateralUsd += x; B.dayUsd += x; B.soldUsd += x; B.soldStyx += styx; B.n++;
+      w.bonds = w.bonds || []; w.bonds.push({ id: base58(randomBytes(6)), usd: x, styx, price, ts: now, claimed: 0 }); hist(w, { type: 'bond', amt: x }); save();
+      return json(res, 200, { ok: true, bonded: x, styxOut: styx, price, market: db.styxPrice, ...account(d.wallet) });
+    }
+    if (u === '/api/bond/claim') { const now = Date.now(); let got = 0; for (const b of w.bonds || []) { const k = Math.min(1, (now - b.ts) / BOND.vestMs); const c = Math.max(0, b.styx * k - b.claimed); b.claimed += c; got += c; } if (got < 1e-9) return json(res, 200, { error: 'nothing vested yet' }); w.styx += got; save(); return json(res, 200, { ok: true, claimedStyx: got, ...account(d.wallet) }); }
+    if (u === '/api/withdraw') { // ledger -> payout queue (treasury pays by hand, then marks it paid). asset: USDG (default) or STYX
+      const asset = d.asset === 'STYX' ? 'STYX' : 'USDG';
+      const x = num(d.amount, asset === 'STYX' ? w.styx : w.usdg); if (!x) return json(res, 200, { error: 'nothing to withdraw' }); if (asset === 'USDG' && x < 1) return json(res, 200, { error: 'minimum 1 USDG' });
+      if (asset === 'STYX') w.styx -= x; else w.usdg -= x;
+      const q = { id: base58(randomBytes(6)), wallet: d.wallet.toLowerCase(), amt: x, asset, ts: Date.now(), status: 'queued', tx: null }; db.queue.unshift(q); if (db.queue.length > 500) db.queue.pop(); save();
       return json(res, 200, { ok: true, queued: q, ...account(d.wallet) });
     }
     if (u === '/api/admin/queue') { if (!ADMIN_KEY || d.key !== ADMIN_KEY) return json(res, 200, { error: 'no' }); return json(res, 200, { ok: true, queue: db.queue.slice(0, 100), deposits: Object.entries(db.txs).map(([tx, t]) => ({ tx, ...t })).slice(-50) }); }

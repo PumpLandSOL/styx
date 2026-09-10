@@ -215,7 +215,7 @@ footer{text-align:center;color:var(--mut);font-style:italic;font-size:14px;paddi
     <div class="eyebrow">ΣΤΥΞ · the river you cross</div>
     <h1>Private money,<br>carried <em>unseen</em>.</h1>
     <p class="lead"><b>sUSD</b> is a fractional-algorithmic stablecoin you hold and send <b>privately</b> — shield it, and the amount &amp; both parties vanish from the ledger. The coin placed beneath the tongue, paid across the river. <b>Public when you choose; hidden when you don't.</b></p>
-    <div class="cta"><button class="btn fill" id="cta-demo">Enter the crossing ↓</button><a class="btn ghost" href="#road">The rites ahead</a></div>
+    <div class="cta"><button class="btn fill" id="cta-demo">Deposit USDG · Bond at −20% ↓</button><a class="btn ghost" href="#road">The rites ahead</a></div>
   </section>
 
   <div class="frieze"></div>
@@ -231,7 +231,7 @@ footer{text-align:center;color:var(--mut);font-style:italic;font-size:14px;paddi
       <div class="b priv"><div class="l">sUSD · unseen</div><div class="v"><span id="b-priv-red" class="redact">██████</span><span id="b-priv-val" style="display:none"></span><span class="reveal" id="b-priv-eye">reveal</span><span class="reveal" id="b-seal" title="generate a read-only view key">seal</span></div></div>
     </div>
     <div class="tabs">
-      <button data-tab="deposit">Deposit</button><button class="on" data-tab="mint">Mint</button><button data-tab="shield">Shield</button><button data-tab="send">Send Unseen</button><button data-tab="vigil">The Vigil</button><button data-tab="redeem">Redeem</button>
+      <button data-tab="deposit">Deposit</button><button data-tab="bond">Bonds</button><button class="on" data-tab="mint">Mint</button><button data-tab="shield">Shield</button><button data-tab="send">Send Unseen</button><button data-tab="vigil">The Vigil</button><button data-tab="redeem">Redeem</button>
     </div>
     <div class="panel" id="panel"></div>
   </div>
@@ -253,6 +253,16 @@ footer{text-align:center;color:var(--mut);font-style:italic;font-size:14px;paddi
     <div class="r3"><div class="k">The Seal · selective disclosure</div><h3>Prove it to one person. Hide it from everyone else.</h3><p>Generate a <b>view key</b> for your wallet. Whoever holds it can read your shielded balance and history on a sealed statement page. It <b>can never spend</b>. Give it to an accountant, a partner, a regulator — and to nobody else.</p></div>
   </div>
 
+  <!-- BONDS -->
+  <div class="sec" id="bonds"><span>Bonds · deposit USDG, take $STYX at a discount<span class="tmp" style="background:var(--red);color:#fff">−20%</span></span></div>
+  <div class="pyre" style="border-color:rgba(201,162,94,.5);background:linear-gradient(180deg,#141008,var(--stone))">
+    <div class="stat"><div class="l">bond price · $STYX</div><div class="v" id="bd-price" style="color:var(--gold2)">—</div></div>
+    <div class="stat"><div class="l">market price</div><div class="v" id="bd-market">—</div></div>
+    <div class="stat"><div class="l">capacity left today</div><div class="v" id="bd-left">—</div></div>
+    <div class="stat"><div class="l">bonded so far</div><div class="v" id="bd-sold">—</div></div>
+  </div>
+  <div class="pyre-note">Deposit USDG and take <b>$STYX at 20% below market</b>, vesting linearly over <b>5 days</b>. The USDG goes straight into the reserve and mints <b>nothing</b>, so every bond makes sUSD more collateralized. Daily capacity is capped, first come first served. Minimum 50 USDG.</div>
+
   <!-- CHARON'S CUT -->
   <div class="sec" id="ferry"><span>Referrals · earn from every crossing<span class="tmp" style="background:var(--gold)">NEW</span></span></div>
   <div class="rite3">
@@ -266,7 +276,7 @@ footer{text-align:center;color:var(--mut);font-style:italic;font-size:14px;paddi
   <!-- THE VIGIL -->
   <div class="sec" id="vigil"><span>The vigil · temporary staking<span class="tmp">30 DAYS</span></span></div>
   <div class="vig">
-    <div class="stat"><div class="l">APY · paid in $STYX</div><div class="v g" id="v-apy">—</div></div>
+    <div class="stat"><div class="l">APY · paid in $STYX</div><div class="v g" id="v-apy">—</div><div class="l" id="v-boost" style="margin-top:6px;color:var(--verd)"></div></div>
     <div class="stat"><div class="l">sUSD keeping vigil</div><div class="v" id="v-staked">—</div></div>
     <div class="stat"><div class="l">reward pool left</div><div class="v" id="v-pool">—</div></div>
     <div class="stat"><div class="l">ends in</div><div class="v" id="v-ends">—</div></div>
@@ -323,6 +333,7 @@ footer{text-align:center;color:var(--mut);font-style:italic;font-size:14px;paddi
     <details><summary>What is the Seal?</summary><div class="a">A <b>view key</b>: an HMAC over your address with a server salt, encoded with your address so the statement page can verify it. It reads your shielded balance and history. It has <b>no spending power</b>. This is the selective-disclosure model privacy coins use for audits: you choose who sees, and only they see.</div></details>
     <details><summary>Is my USDG actually deposited?</summary><div class="a">Yes. Minting starts with a real <b>USDG transfer on Robinhood Chain to the treasury</b>. The server reads the transaction receipt, checks the Transfer log is from your wallet to the treasury, and only then credits your ledger. Every deposited dollar sits in the treasury address you can see on the explorer. <i>Nothing on this site is paper any more.</i></div></details>
     <details><summary>How do I get USDG back out?</summary><div class="a">Redeem sUSD for USDG on the ledger, then <b>Withdraw</b>. Withdrawals go into a queue the treasury pays out by hand from a cold wallet, usually within 24 hours, and the payout tx hash is written next to your request. There is deliberately <b>no hot key on the server</b>.</div></details>
+    <details><summary>What are Bonds?</summary><div class="a">The fastest way to grow the reserve. You deposit USDG and receive <b>$STYX at 20% below market</b>, vesting linearly over 5 days, claimable as it vests and withdrawable to your wallet from the treasury. Your USDG goes into the sUSD reserve and <b>mints nothing</b>, so bonds push the collateral ratio up, not down. Capacity is capped per day and the program closes with the Vigil on Oct 11.</div></details>
     <details><summary>What is The Vigil, and why is it temporary?</summary><div class="a">A 30-day staking window: stake sUSD, earn a fixed APY, paid in <b>$STYX from a pool the treasury set aside in advance</b>. It has a hard end date and a hard pool size. Anchor's 20% was permanent and subsidised, so it became the only reason to hold UST and the peg died with it. A yield that <i>ends</i> can't do that.</div></details>
     <details><summary>What is The Pyre?</summary><div class="a">A ferry toll. Every shield, private send and unshield pays <b>30 bps</b>, every redeem pays <b>50 bps</b>. The toll gathers in USDG and each epoch the protocol buys <b>$STYX</b> at market and burns it, publishing a burn receipt. Usage of private money becomes permanent scarcity in the share token. <i>The burn is public. The payer never is.</i></div></details>
     <details><summary>Which chain and which wallet?</summary><div class="a"><b>Robinhood Chain</b> (chainId 4663). Connect any EVM wallet such as MetaMask or Rabby; the site switches the network for you. USDG is the collateral asset.</div></details>
