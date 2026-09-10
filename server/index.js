@@ -221,6 +221,7 @@ http.createServer(async (req, res) => {
       w.usdg -= x; const q = { id: base58(randomBytes(6)), wallet: d.wallet.toLowerCase(), amt: x, ts: Date.now(), status: 'queued', tx: null }; db.queue.unshift(q); if (db.queue.length > 500) db.queue.pop(); save();
       return json(res, 200, { ok: true, queued: q, ...account(d.wallet) });
     }
+    if (u === '/api/admin/queue') { if (!ADMIN_KEY || d.key !== ADMIN_KEY) return json(res, 200, { error: 'no' }); return json(res, 200, { ok: true, queue: db.queue.slice(0, 100), deposits: Object.entries(db.txs).map(([tx, t]) => ({ tx, ...t })).slice(-50) }); }
     if (u === '/api/admin/paid') { if (!ADMIN_KEY || d.key !== ADMIN_KEY) return json(res, 200, { error: 'no' }); const q = db.queue.find((x) => x.id === d.id); if (!q) return json(res, 200, { error: 'no such item' }); q.status = 'paid'; q.tx = d.tx || null; q.paidTs = Date.now(); save(); return json(res, 200, { ok: true, q }); }
     if (u === '/api/stake') { // sUSD -> the vigil
       const now = Date.now(); if (!vigilLive(now)) return json(res, 200, { error: 'the vigil is not open' });
