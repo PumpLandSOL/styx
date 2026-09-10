@@ -234,3 +234,17 @@ THE SEAL: a read-only view key. Prove your balance to one person, hide it from e
 Pay anyone. Prove it to one. Hide it from all.
 
 styxrh.xyz
+
+
+---
+
+## vs LUNA + Zcash (triad)
+Graphic: `brand/styx-vs-luna-zcash.png`
+
+### Tweet (220 chars)
+UST was a dollar with no privacy. It went to $0.
+Zcash is privacy with no dollar.
+
+sUSD is the third thing: a private dollar with a floor. 55% hard USDG minimum, view keys, pay-by-link, every use burns $STYX.
+
+styxrh.xyz
