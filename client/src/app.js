@@ -102,7 +102,7 @@ function renderPanel() {
     $('act').onclick = () => doAct('/api/note/claim', { secret: claimSecret, amount: 1 }, (r) => { history.replaceState(null, '', location.pathname); tab = 'send'; renderPanel(); return `claimed ${fmt(r.claimed, 2)} sUSD — privately`; });
   } else if (tab === 'deposit') {
     p.innerHTML = `<div class="note">Send <b>USDG on Robinhood Chain</b> to the treasury and it is credited to your ledger once the receipt confirms. <b>Every deposited dollar sits in the treasury address</b> — see the on-chain balance in the Treasury bar below.</div>
-      <div class="field"><input id="in" type="number" placeholder="0.00" min="0"><span class="u">USDG</span></div>
+      <div class="field"><input id="in" type="number" placeholder="50.00 minimum" min="50"><span class="u">USDG</span></div>
       <div class="kv"><span>Treasury</span><b>${M && M.treasury ? M.treasury.slice(0, 8) + '…' + M.treasury.slice(-6) : '—'}</b></div>
       <div class="kv"><span>Credited so far</span><b>${A ? fmt(A.deposited, 2) + ' USDG' : '—'}</b></div>
       <button class="btn wide" id="act" style="margin-top:14px">Send USDG from wallet</button>
@@ -165,7 +165,7 @@ function renderPanel() {
   }
 }
 async function sendUsdg(amount) {
-  if (needWallet()) return; if (!amount || amount <= 0) return toast('enter an amount', true);
+  if (needWallet()) return; if (!amount || amount <= 0) return toast('enter an amount', true); const minDep = (M && M.minDeposit) || 50; if (amount < minDep) return toast('minimum deposit is ' + minDep + ' USDG', true);
   const eth = evm(); if (!eth) return toast('open a wallet to send USDG, or paste a tx hash', true);
   if (!M || !M.chain || !M.chain.usdg || !M.treasury) return toast('treasury not configured', true);
   try {
