@@ -1,0 +1,66 @@
+<!doctype html><html><head><meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;800&family=EB+Garamond:ital@1&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>html,body{margin:0;background:#080706;overflow:hidden}canvas{display:block}</style>
+</head><body><canvas id="c" width="1280" height="720"></canvas>
+<script>
+// RITE III — 10s deterministic hype scene: the note travels as a link, the seal opens for one reader.
+const W = 1280, H = 720, cv = document.getElementById('c'), g = cv.getContext('2d');
+const GOLD = '#c9a25e', GOLD2 = '#e9cf95', INK = '#e9ddc6', VERD = '#62a187', VERD2 = '#8fd1b4', RED = '#d8503a', MUT = '#8f8470';
+function rng(seed) { let s = seed >>> 0; return () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; }; }
+const R = rng(23);
+const MOTES = Array.from({ length: 160 }, () => ({ x: R(), y: R(), sp: 0.02 + R() * 0.05, sz: 1 + R() * 2.2, ph: R() * 6.28, hot: R() }));
+const GLYPH = Array.from({ length: 140 }, () => ({ x: R(), y: R(), ch: '0123456789abcdef'[Math.floor(R() * 16)], sp: 0.05 + R() * 0.1, ph: R() * 6.28 }));
+const ease = (k) => k < .5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const seg = (t, a, b) => clamp((t - a) / (b - a), 0, 1);
+const fadeIO = (t, a, b, f = .35) => Math.min(seg(t, a, a + f), 1 - seg(t, b - f, b));
+
+function bg(t) { g.fillStyle = '#080706'; g.fillRect(0, 0, W, H); const gl = g.createRadialGradient(W / 2, H / 2, 40, W / 2, H / 2, 760); gl.addColorStop(0, 'rgba(201,162,94,.10)'); gl.addColorStop(.5, 'rgba(98,161,135,.05)'); gl.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = gl; g.fillRect(0, 0, W, H); }
+function motes(t, a) { for (const e of MOTES) { const y = ((e.y - t * e.sp) % 1 + 1) % 1; const x = e.x + Math.sin(t + e.ph) * 0.01; g.fillStyle = e.hot > .5 ? `rgba(143,209,180,${a * .6})` : `rgba(233,207,149,${a * .6})`; g.beginPath(); g.arc(x * W, y * H, e.sz, 0, 6.28); g.fill(); } }
+function txt(s, x, y, size, color, font = 'Cinzel', weight = 800, align = 'center', ls = 0) { g.font = `${weight} ${size}px '${font}'`; g.fillStyle = color; g.textAlign = align; g.textBaseline = 'middle'; g.letterSpacing = ls + 'px'; g.fillText(s, x, y); g.letterSpacing = '0px'; }
+function vignette() { const v = g.createRadialGradient(W / 2, H / 2, 300, W / 2, H / 2, 820); v.addColorStop(0, 'rgba(0,0,0,0)'); v.addColorStop(1, 'rgba(0,0,0,.6)'); g.fillStyle = v; g.fillRect(0, 0, W, H); }
+function redact(x, y, w, h, a) { g.fillStyle = `rgba(13,10,6,${a})`; g.fillRect(x, y, w, h); g.strokeStyle = `rgba(201,162,94,${a * .6})`; g.lineWidth = 1.5; g.strokeRect(x + .5, y + .5, w - 1, h - 1); }
+function glyphRain(t, a) { g.font = "500 16px 'JetBrains Mono'"; g.textAlign = 'center'; for (const q of GLYPH) { const y = ((q.y + t * q.sp) % 1); g.fillStyle = `rgba(201,162,94,${a * (0.15 + 0.25 * Math.sin(t * 3 + q.ph) ** 2)})`; g.fillText(q.ch, q.x * W, y * H); } }
+function pill(x, y, w, s, a, col) { g.save(); g.globalAlpha = a; g.fillStyle = '#0c0906'; g.strokeStyle = col; g.lineWidth = 2; g.beginPath(); g.roundRect(x - w / 2, y - 26, w, 52, 26); g.fill(); g.stroke(); txt(s, x, y + 1, 20, col, 'JetBrains Mono', 500, 'center', 1); g.restore(); }
+function key(cx, cy, a, sc = 1) { g.save(); g.globalAlpha = a; g.translate(cx, cy); g.scale(sc, sc); g.strokeStyle = VERD2; g.lineWidth = 6; g.shadowColor = 'rgba(143,209,180,.7)'; g.shadowBlur = 24; g.beginPath(); g.arc(-40, 0, 26, 0, 6.28); g.stroke(); g.beginPath(); g.moveTo(-14, 0); g.lineTo(70, 0); g.lineTo(70, 18); g.moveTo(48, 0); g.lineTo(48, 14); g.stroke(); g.restore(); }
+
+window.__seek = function (t) {
+  bg(t); motes(t, t < 9 ? 0.8 : 0.8 * (1 - seg(t, 9, 10))); vignette();
+
+  // ── 0–2.2 hook
+  if (t < 2.3) { const a = fadeIO(t, .2, 2.3, .35); g.globalAlpha = a; txt('PRIVATE DOLLARS', W / 2, H / 2 - 40, 78, INK, 'Cinzel', 800, 'center', 8); txt('just got two new powers', W / 2, H / 2 + 40, 28, MUT, 'EB Garamond', 400); g.globalAlpha = 1; }
+
+  // ── 2.2–5.2 THE NOTE: link pill flies from left phone to right, address redacted
+  if (t >= 2.2 && t < 5.3) {
+    const a = fadeIO(t, 2.2, 5.3, .3); glyphRain(t, a * .5);
+    g.globalAlpha = a; txt('THE NOTE', W / 2, 120, 64, GOLD2, 'Cinzel', 800, 'center', 12); txt('send shielded sUSD to anyone as a link. no address. no name.', W / 2, 180, 24, MUT, 'EB Garamond', 400); g.globalAlpha = 1;
+    const k = ease(seg(t, 2.6, 4.2)); const x = 200 + k * 880;
+    g.globalAlpha = a; g.strokeStyle = 'rgba(201,162,94,.25)'; g.setLineDash([6, 10]); g.lineWidth = 2; g.beginPath(); g.moveTo(200, 400); g.lineTo(1080, 400); g.stroke(); g.setLineDash([]);
+    txt('you', 200, 470, 22, MUT, 'JetBrains Mono', 500, 'center', 4); txt('anyone', 1080, 470, 22, MUT, 'JetBrains Mono', 500, 'center', 4);
+    redact(1000, 500, 160, 30, a); txt('recipient', 1080, 555, 16, MUT, 'JetBrains Mono', 500, 'center', 3); g.globalAlpha = 1;
+    pill(x, 400, 420, 'styxrh.xyz/#claim=7Kq2…xP4c', a, GOLD);
+    const kb = seg(t, 4.3, 4.9); if (kb > 0) { g.globalAlpha = a * kb; txt('+ ████ sUSD claimed · unseen', 1000, 320 - kb * 10, 24, VERD2, 'Cinzel', 700, 'center', 2); g.globalAlpha = 1; }
+  }
+
+  // ── 5.2–8.2 THE SEAL: key turns, one reader sees, everyone else sees bars
+  if (t >= 5.2 && t < 8.3) {
+    const a = fadeIO(t, 5.2, 8.3, .3);
+    g.globalAlpha = a; txt('THE SEAL', W / 2, 120, 64, VERD2, 'Cinzel', 800, 'center', 12); txt('a read-only view key. prove it to one person, hide it from everyone else.', W / 2, 180, 24, MUT, 'EB Garamond', 400); g.globalAlpha = 1;
+    const k = ease(seg(t, 5.5, 6.4)); key(W / 2, 330, a, 1.1);
+    // left: everyone — bars. right: key holder — numbers
+    const rows = ['balance', 'shield · Sep 09', 'note · Sep 10', 'unshield · Sep 10'];
+    const vals = ['12,480.00 sUSD', '+ 5,000.00', '− 1,250.00', '− 800.00'];
+    rows.forEach((r, i) => { const y = 450 + i * 52;
+      g.globalAlpha = a; txt(r, 330, y, 20, MUT, 'JetBrains Mono', 500, 'right', 1); redact(360, y - 14, 170, 28, a);
+      txt(r, 830, y, 20, MUT, 'JetBrains Mono', 500, 'right', 1); g.globalAlpha = a * k; txt(vals[i], 860, y, 22, INK, 'JetBrains Mono', 500, 'left', 1); g.globalAlpha = 1; });
+    g.globalAlpha = a; txt('EVERYONE', 420, 410, 16, RED, 'JetBrains Mono', 500, 'center', 5); txt('KEY HOLDER', 940, 410, 16, VERD2, 'JetBrains Mono', 500, 'center', 5);
+    txt('can never spend', W / 2, 680, 22, MUT, 'EB Garamond', 400); g.globalAlpha = 1;
+  }
+
+  // ── 8.2–10 outro
+  if (t >= 8.2) { const a = seg(t, 8.2, 8.6); g.globalAlpha = a; txt('RITE III', W / 2, H / 2 - 90, 26, VERD, 'JetBrains Mono', 500, 'center', 10); txt('STYX', W / 2, H / 2, 96, GOLD, 'Cinzel', 800, 'center', 22); txt('styxrh.xyz  ·  $STYX  ·  the note & the seal are live', W / 2, H / 2 + 90, 22, MUT, 'JetBrains Mono', 500, 'center', 2); g.globalAlpha = 1; }
+  return true;
+};
+window.__ready = document.fonts.ready.then(() => { __seek(0); return true; });
+</script></body></html>

@@ -208,3 +208,29 @@ Anchor never ended. That's the problem.
 Real USDG deposits, verified on-chain. Nothing printed to mint.
 
 styxrh.xyz
+
+---
+
+## RITE III — The Note & The Seal
+Video: `brand/styx-rite3-10s.mp4` (10s, 1280x720, locked 30fps, rendered)
+
+### Main tweet
+Private dollars just got two new powers. Rite III is live on $STYX.
+
+THE NOTE: send shielded sUSD to anyone as a link. No address, no name. On the ledger it is one nullifier and one commitment, same as any private send. Text it, DM it, print the QR.
+
+THE SEAL: a read-only view key. Hand it to your accountant, a partner, a regulator. They see your shielded balance and history on a sealed statement. They can never spend. Nobody else sees anything.
+
+Pay anyone. Prove it to one person. Hide it from everyone else.
+
+styxrh.xyz
+
+### Short (≤275)
+Rite III is live on $STYX.
+
+THE NOTE: send shielded sUSD to anyone as a link. No address, no name.
+THE SEAL: a read-only view key. Prove your balance to one person, hide it from everyone else. It can never spend.
+
+Pay anyone. Prove it to one. Hide it from all.
+
+styxrh.xyz

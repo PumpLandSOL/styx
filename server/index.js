@@ -9,7 +9,7 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
-const { generateKeyPairSync, sign, createHash, randomBytes, randomInt, diffieHellman, createCipheriv } = require('crypto');
+const { generateKeyPairSync, sign, createHash, createHmac, randomBytes, randomInt, diffieHellman, createCipheriv } = require('crypto');
 
 const PORT = process.env.PORT || 8198;
 const ROOT = path.join(__dirname, '..');
@@ -110,6 +110,18 @@ function accrue(u, now) {   // reward accrues in sUSD terms per second while the
 }
 function vigilView(u, now) { accrue(u, now); const px = Math.max(0.000001, db.styxPrice); return { staked: u.stake || 0, accruedUsd: u.stakeAcc || 0, accruedStyx: (u.stakeAcc || 0) / px, since: u.stakeSince || null }; }
 
+// ---------- RITE III: The Note (pay links) + The Seal (view keys) ----------
+//   The Note : lock shielded sUSD behind a secret; anyone holding the link claims it into their own shielded balance.
+//              No recipient address is ever named. On the ledger it is one nullifier + one commitment, like any private send.
+//   The Seal : a read-only view key. Whoever holds it can read your private balance and history and can never spend.
+//              Selective disclosure — show an auditor, a partner, a court exactly what you choose, and nobody else.
+if (!db.links) db.links = {};
+if (!db.viewSalt) db.viewSalt = base58(randomBytes(32));
+const hist = (w, e) => { w.hist = w.hist || []; w.hist.unshift({ ts: Date.now(), ...e }); if (w.hist.length > 200) w.hist.pop(); };
+const linkId = (secret) => base58(sha('note|' + secret));
+function viewKeyOf(addr) { const mac = createHmac('sha256', db.viewSalt).update('seal|' + addr.toLowerCase()).digest().subarray(0, 16); return base58(Buffer.concat([Buffer.from(addr.slice(2), 'hex'), mac])); }
+function walletOfViewKey(key) { try { let n = 0n; for (const ch of key) { const i = B58.indexOf(ch); if (i < 0) return null; n = n * 58n + BigInt(i); } let hex = n.toString(16); if (hex.length % 2) hex = '0' + hex; let buf = Buffer.from(hex, 'hex'); let lead = 0; for (const ch of key) { if (ch === '1') lead++; else break; } buf = Buffer.concat([Buffer.alloc(lead), buf]); if (buf.length !== 36) return null; const addr = '0x' + buf.subarray(0, 20).toString('hex'); return viewKeyOf(addr) === key ? addr : null; } catch (e) { return null; } }
+
 // ---------- privacy primitives (real) ----------
 const shKeys = [];
 function shInit() { for (let i = 0; i < 16; i++) { const kp = generateKeyPairSync('x25519'); shKeys.push({ pub: kp.publicKey, addr: base58(rawX(kp.publicKey)), secret: base58(randomBytes(12)) }); } }
@@ -166,7 +178,7 @@ function metrics() {
     cr: db.cr, collateralUsd: db.collateralUsd, backingRatio: backing,
     styxPrice: db.styxPrice, styxSupply: db.styxSupply, styxMarketCap: db.styxPrice * db.styxSupply,
     chain: { ok: CHAIN.ok, block: CHAIN.block, treasuryUsdg: CHAIN.treasuryUsdg, treasuryStyx: CHAIN.treasuryStyx, lastRead: CHAIN.lastRead, usdg: USDG.addr, rpc: RPCS[0] },
-    deposits: { usdg: db.treasuryIn.usdg, n: db.treasuryIn.n }, queue: { open: db.queue.filter((q) => q.status === 'queued').length, openUsd: db.queue.filter((q) => q.status === 'queued').reduce((a, q) => a + q.amt, 0), paid: db.queue.filter((q) => q.status === 'paid').length },
+    deposits: { usdg: db.treasuryIn.usdg, n: db.treasuryIn.n }, notes: { created: Object.keys(db.links).length, open: Object.values(db.links).filter((L) => !L.claimed).length, claimed: Object.values(db.links).filter((L) => L.claimed).length }, queue: { open: db.queue.filter((q) => q.status === 'queued').length, openUsd: db.queue.filter((q) => q.status === 'queued').reduce((a, q) => a + q.amt, 0), paid: db.queue.filter((q) => q.status === 'paid').length },
     vigil: { ...VIGIL, live: vigilLive(Date.now()), staked: db.vigil.staked, stakers: db.vigil.stakers, paidStyx: db.vigil.paidStyx, paidUsd: db.vigil.paidUsd, poolLeft: Math.max(0, VIGIL.pool - db.vigil.paidStyx), poolLeftUsd: Math.max(0, VIGIL.pool - db.vigil.paidStyx) * db.styxPrice, endsIn: Math.max(0, VIGIL.end - Date.now()), startsIn: Math.max(0, VIGIL.start - Date.now()) },
     pyre: { tollUsd: pyre.tollUsd, burnedStyx: pyre.burnedStyx, burnedUsd: pyre.burnedUsd, epochs: pyre.epochs, minUsd: PYRE_MIN_USD, bps: { shield: 30, send: 30, unshield: 30, redeem: 50 }, burns: pyre.burns.slice(0, 8).map((b) => ({ id: b.id.slice(0, 8) + '…' + b.id.slice(-4), usd: b.usd, styx: b.styx, px: b.px, ts: b.ts, epoch: b.epoch })) },
     shielded: { totalValue: sh.totalValue, notes: sh.notes, nullifiers: sh.nullifiers, txCount: sh.txCount, root: sh.root },
@@ -177,7 +189,7 @@ function account(addr) { const w = W(addr); const now = Date.now(); return { wal
 
 // ---------- http ----------
 const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml', '.png': 'image/png' };
-function serve(req, res) { let u = decodeURIComponent(req.url.split('?')[0]); if (u === '/') u = '/client/index.html'; const f = path.normalize(path.join(ROOT, u)); if (!f.startsWith(ROOT)) { res.writeHead(403); return res.end('no'); } fs.readFile(f, (e, b) => { if (e) { res.writeHead(404); return res.end('not found'); } res.writeHead(200, { 'Content-Type': MIME[path.extname(f)] || 'application/octet-stream' }); res.end(b); }); }
+function serve(req, res) { let u = decodeURIComponent(req.url.split('?')[0]); if (u === '/') u = '/client/index.html'; if (u === '/view') u = '/client/view.html'; const f = path.normalize(path.join(ROOT, u)); if (!f.startsWith(ROOT)) { res.writeHead(403); return res.end('no'); } fs.readFile(f, (e, b) => { if (e) { res.writeHead(404); return res.end('not found'); } res.writeHead(200, { 'Content-Type': MIME[path.extname(f)] || 'application/octet-stream' }); res.end(b); }); }
 function json(res, c, o) { res.writeHead(c, { 'Content-Type': 'application/json' }); res.end(JSON.stringify(o)); }
 function body(req) { return new Promise((r) => { let b = ''; req.on('data', (c) => { b += c; if (b.length > 1e4) req.destroy(); }); req.on('end', () => { try { r(JSON.parse(b || '{}')); } catch (e) { r({}); } }); }); }
 
@@ -187,6 +199,8 @@ http.createServer(async (req, res) => {
   if (u === '/api/metrics') return json(res, 200, metrics());
   if (req.method === 'POST') {
     const d = await body(req);
+    if (u === '/api/note/peek') { const L = db.links[linkId(String(d.secret || ''))]; if (!L) return json(res, 200, { error: 'no such note' }); return json(res, 200, { amt: L.amt, memo: L.memo, claimed: L.claimed, ts: L.ts }); }
+    if (u === '/api/view') { const addr = walletOfViewKey(String(d.key || '')); if (!addr) return json(res, 200, { error: 'invalid view key' }); const v = W(addr); return json(res, 200, { ok: true, wallet: addr, priv: v.priv, staked: v.stake || 0, hist: (v.hist || []).slice(0, 100), notesOpen: Object.values(db.links).filter((L) => !L.claimed).length, root: sh.root, t: Date.now() }); }
     if (u === '/api/account') { if (!isWallet(d.wallet || '')) return json(res, 200, { error: 'paste a valid Robinhood Chain address' }); return json(res, 200, account(d.wallet)); }
     if (!isWallet(d.wallet || '')) return json(res, 200, { error: 'connect a wallet first' });
     const w = W(d.wallet);
@@ -230,23 +244,38 @@ http.createServer(async (req, res) => {
       w.susd -= r; w.usdg += outUsdg; w.styx += mintStyx; db.susdSupply = Math.max(0, db.susdSupply - r); db.collateralUsd = Math.max(0, db.collateralUsd - outUsdg); db.styxSupply += mintStyx; save();
       return json(res, 200, { ok: true, redeemed: r, gotUsdg: outUsdg, gotStyx: mintStyx, ...account(d.wallet) });
     }
+    if (u === '/api/note/create') { // lock shielded sUSD behind a secret link
+      const x = num(d.amount, w.priv); if (!x) return json(res, 200, { error: 'not enough private balance' }); if (x < 1) return json(res, 200, { error: 'minimum 1 sUSD' });
+      const secret = base58(randomBytes(16)); const id = linkId(secret); const xn = toll('send', x);
+      w.priv -= x; sh.nullifiers++; const { C, note } = shieldNote(xn, shKeys[randomInt(0, shKeys.length)].pub);
+      db.links[id] = { amt: xn, memo: String(d.memo || '').slice(0, 80), ts: Date.now(), claimed: false, from: base58(sha('from|' + d.wallet.toLowerCase() + '|' + secret)) };
+      pushShTx({ sig: base58(randomBytes(32)), type: 'private', nullifier: nullifierOf('n', sh.notes), commitment: C, note, proof: simProof(), ts: Date.now() });
+      hist(w, { type: 'note', amt: x, id }); save();
+      return json(res, 200, { ok: true, secret, id, amt: xn, toll: x - xn, ...account(d.wallet) });
+    }
+    if (u === '/api/note/claim') { // anyone holding the secret claims it into THEIR shielded balance
+      const L = db.links[linkId(String(d.secret || ''))]; if (!L) return json(res, 200, { error: 'no such note' }); if (L.claimed) return json(res, 200, { error: 'this note was already claimed' });
+      L.claimed = true; L.claimedTs = Date.now(); w.priv += L.amt; hist(w, { type: 'claimed', amt: L.amt, memo: L.memo }); save();
+      return json(res, 200, { ok: true, claimed: L.amt, memo: L.memo, ...account(d.wallet) });
+    }
+    if (u === '/api/seal') { return json(res, 200, { ok: true, viewKey: viewKeyOf(d.wallet) }); }
     if (u === '/api/shield') { // public sUSD -> private
       const s = num(d.amount, w.susd); if (!s) return json(res, 200, { error: 'nothing to shield' });
-      const sn = toll('shield', s); w.susd -= s; w.priv += sn; sh.totalValue += sn; const { C, note } = shieldNote(sn, shKeys[0].pub);
+      const sn = toll('shield', s); w.susd -= s; w.priv += sn; sh.totalValue += sn; hist(w, { type: 'shield', amt: sn }); const { C, note } = shieldNote(sn, shKeys[0].pub);
       pushShTx({ sig: base58(randomBytes(32)), type: 'shield', commitment: C, note, ts: Date.now() }); save();
       return json(res, 200, { ok: true, shielded: sn, toll: s - sn, ...account(d.wallet) });
     }
     if (u === '/api/send') { // shielded transfer — amount + parties hidden
       if (!isWallet(d.to || '')) return json(res, 200, { error: 'enter a valid recipient address' });
       const x = num(d.amount, w.priv); if (!x) return json(res, 200, { error: 'not enough private balance' });
-      const xn = toll('send', x); w.priv -= x; const r = W(d.to); r.priv += xn; sh.nullifiers++;
+      const xn = toll('send', x); w.priv -= x; const r = W(d.to); r.priv += xn; sh.nullifiers++; hist(w, { type: 'sent', amt: x, to: d.to.toLowerCase() }); hist(r, { type: 'received', amt: xn });
       const { C, note } = shieldNote(xn, shKeys[randomInt(0, shKeys.length)].pub);
       pushShTx({ sig: base58(randomBytes(32)), type: 'private', nullifier: nullifierOf('u', sh.notes), commitment: C, note, proof: simProof(), ts: Date.now() }); save();
       return json(res, 200, { ok: true, sent: xn, toll: x - xn, ...account(d.wallet) });
     }
     if (u === '/api/unshield') { // private -> public
       const un = num(d.amount, w.priv); if (!un) return json(res, 200, { error: 'nothing to unshield' });
-      const unn = toll('unshield', un); w.priv -= un; w.susd += unn; sh.totalValue = Math.max(0, sh.totalValue - un); sh.nullifiers++;
+      const unn = toll('unshield', un); w.priv -= un; w.susd += unn; hist(w, { type: 'unshield', amt: un }); sh.totalValue = Math.max(0, sh.totalValue - un); sh.nullifiers++;
       pushShTx({ sig: base58(randomBytes(32)), type: 'unshield', nullifier: nullifierOf('u', sh.notes), publicAmount: un, ts: Date.now() }); save();
       return json(res, 200, { ok: true, unshielded: unn, toll: un - unn, ...account(d.wallet) });
     }

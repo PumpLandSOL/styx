@@ -81,12 +81,26 @@ function renderPriv() {
   else { red.style.display = ''; val.style.display = 'none'; $('b-priv-eye').textContent = 'reveal'; }
 }
 $('b-priv-eye').onclick = () => { reveal = !reveal; renderPriv(); };
+$('b-seal').onclick = async () => { if (needWallet()) return; const r = await api('/api/seal', { wallet }); if (r.error) return toast(r.error, true); tab = 'seal'; sealKey = r.viewKey; document.querySelectorAll('.tabs button').forEach((x) => x.classList.remove('on')); renderPanel(); $('demo').scrollIntoView({ behavior: 'smooth' }); };
+let sealKey = '', claimSecret = '', lastNote = null;
 
 // ---------- demo tabs ----------
 document.querySelectorAll('.tabs button').forEach((b) => b.onclick = () => { tab = b.dataset.tab; document.querySelectorAll('.tabs button').forEach((x) => x.classList.toggle('on', x === b)); renderPanel(); });
 function renderPanel() {
   const p = $('panel'); const cr = M ? M.cr : 0.9, vp = M ? M.styxPrice : 0.85;
-  if (tab === 'deposit') {
+  if (tab === 'seal') {
+    const url = location.origin + '/view#' + sealKey;
+    p.innerHTML = `<div class="note"><b>The Seal.</b> This view key opens a read-only statement of your shielded balance and history. It <b>cannot spend</b>. Give it only to who you want to see.</div>
+      <div class="linkbox"><code id="vk">${url}</code><button id="cp">Copy</button></div>
+      <div class="kv" style="margin-top:12px"><span>opens</span><b><a href="${url}" target="_blank" style="color:var(--gold)">sealed statement ↗</a></b></div>`;
+    $('cp').onclick = () => { navigator.clipboard.writeText(url); toast('view key copied'); };
+  } else if (tab === 'claim') {
+    p.innerHTML = `<div class="note"><b>Someone sent you a Note.</b> Private sUSD is locked behind this link. Claim it into your shielded balance.</div>
+      <div class="kv"><span>amount</span><b id="cl-amt">…</b></div><div class="kv"><span>memo</span><b id="cl-memo">—</b></div>
+      <button class="btn wide" id="act" style="margin-top:14px">Claim into my shielded balance</button>`;
+    api('/api/note/peek', { secret: claimSecret }).then((r) => { if (r.error) { $('cl-amt').textContent = r.error; $('act').disabled = true; return; } $('cl-amt').textContent = r.claimed ? 'already claimed' : fmt(r.amt, 2) + ' sUSD'; $('cl-memo').textContent = r.memo || '—'; if (r.claimed) $('act').disabled = true; });
+    $('act').onclick = () => doAct('/api/note/claim', { secret: claimSecret, amount: 1 }, (r) => { history.replaceState(null, '', location.pathname); tab = 'send'; renderPanel(); return `claimed ${fmt(r.claimed, 2)} sUSD — privately`; });
+  } else if (tab === 'deposit') {
     p.innerHTML = `<div class="note">Send <b>USDG on Robinhood Chain</b> to the treasury and it is credited to your ledger once the receipt confirms. <b>Every deposited dollar sits in the treasury address</b> — see the on-chain balance in the Treasury bar below.</div>
       <div class="field"><input id="in" type="number" placeholder="0.00" min="0"><span class="u">USDG</span></div>
       <div class="kv"><span>Treasury</span><b>${M && M.treasury ? M.treasury.slice(0, 8) + '…' + M.treasury.slice(-6) : '—'}</b></div>
@@ -128,9 +142,15 @@ function renderPanel() {
       <div class="field"><input id="to" placeholder="recipient Robinhood Chain address…" spellcheck="false"></div>
       <div class="field"><input id="in" type="number" placeholder="0.00" min="0"><span class="u">sUSD</span><span class="mx" id="mx">MAX</span></div>
       <div class="kv"><span>Your private balance</span><b>${A ? (reveal ? fmt(A.priv, 2) : '████') : '—'}</b></div>
-      <button class="btn wide" id="act" style="margin-top:14px">Send privately</button>`;
+      <button class="btn wide" id="act" style="margin-top:14px">Send privately</button>
+      <div class="note" style="margin:18px 0 8px"><b>Or write a Note:</b> no address needed. Lock the amount above behind a link and send the link to anyone.</div>
+      <div class="field"><input id="memo" placeholder="memo (optional, seen only by the claimer)" maxlength="80"></div>
+      <button class="btn ghost wide" id="act2">Create pay link</button>
+      ${lastNote ? '<div class="linkbox"><code>' + lastNote + '</code><button id="cpn">Copy</button></div>' : ''}`;
     $('mx').onclick = () => { if (A) $('in').value = A.priv; };
     $('act').onclick = () => doAct('/api/send', { to: ($('to').value || '').trim(), amount: +$('in').value }, (r) => `sent ${fmt(r.sent, 2)} sUSD — privately`);
+    $('act2').onclick = () => doAct('/api/note/create', { amount: +$('in').value, memo: $('memo').value }, (r) => { lastNote = location.origin + '/#claim=' + r.secret; renderPanel(); return `note written for ${fmt(r.amt, 2)} sUSD — copy the link`; });
+    if ($('cpn')) $('cpn').onclick = () => { navigator.clipboard.writeText(lastNote); toast('link copied'); };
   } else {
     p.innerHTML = `<div class="note">Burn sUSD to recover your <b>${fmt(cr * 100, 0)}% USDG</b> plus the <b>${fmt((1 - cr) * 100, 0)}% STYX</b> share. (Unshield private sUSD first to redeem it.)</div>
       <div class="field"><input id="in" type="number" placeholder="0.00" min="0"><span class="u">sUSD</span><span class="mx" id="mx">MAX</span></div>
@@ -169,7 +189,7 @@ $('ca-copy').onclick = () => { navigator.clipboard.writeText(M.mint); toast('cop
 $('tr-copy').onclick = () => { navigator.clipboard.writeText(M.treasury); toast('copied'); };
 
 // deep-link / capture: ?w=<address> opens a wallet's ledger, &tab=<mint|shield|send|redeem>, &reveal=1
-(function () { const q = new URLSearchParams(location.search);
+(function () { const q = new URLSearchParams(location.search); const hm = /claim=([1-9A-HJ-NP-Za-km-z]+)/.exec(location.hash || ''); if (hm) { claimSecret = hm[1]; tab = 'claim'; setTimeout(() => $('demo').scrollIntoView(), 400); }
   if (q.get('w')) wallet = q.get('w');
   if (q.get('tab')) tab = q.get('tab');
   if (q.get('reveal') === '1') reveal = true; })();

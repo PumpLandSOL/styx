@@ -122,6 +122,15 @@ main{padding:20px 0 90px}
 .vig .stat .v{color:var(--ink)}.vig .stat .v.g{color:var(--verd);text-shadow:0 0 18px rgba(98,161,135,.4)}
 .vig-note{font-size:14px;color:var(--dim);font-style:italic;margin:12px 2px 0}.vig-note b{font-style:normal;color:var(--verd)}
 .tmp{font-family:'JetBrains Mono';font-size:10px;letter-spacing:.2em;color:#0a0807;background:var(--verd);padding:3px 7px;border-radius:2px;margin-left:12px;vertical-align:middle}
+.rite3{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.r3{background:linear-gradient(180deg,var(--stone2),var(--stone));border:1px solid var(--line2);border-radius:3px;padding:20px 22px}
+.r3 .k{font-family:'JetBrains Mono';font-size:10px;letter-spacing:.2em;color:var(--verd);text-transform:uppercase}
+.r3 h3{font-family:'Cinzel';font-weight:700;font-size:20px;margin:8px 0 8px;color:var(--gold2)}
+.r3 p{font-size:15px;color:var(--dim);line-height:1.6;margin:0}.r3 p b{color:var(--ink);font-weight:500}
+.linkbox{display:flex;gap:8px;align-items:center;margin-top:12px;border:1px solid var(--line2);background:#0c0906;padding:8px 10px;border-radius:2px}
+.linkbox code{flex:1;font-family:'JetBrains Mono';font-size:12px;color:var(--gold);word-break:break-all}
+.linkbox button{font-family:'Cinzel';font-size:11px;letter-spacing:.1em;border:1px solid var(--gold);background:none;color:var(--gold);padding:6px 10px;cursor:pointer}
+@media(max-width:720px){.rite3{grid-template-columns:1fr}}
 .led .ty.burn{color:#d8503a;border-color:rgba(216,80,58,.45)}
 .pyre{display:grid;grid-template-columns:repeat(4,1fr);background:linear-gradient(180deg,#1a0e08,var(--stone));border:1px solid rgba(216,80,58,.35);border-radius:3px;position:relative;overflow:hidden}
 .pyre::before{content:"";position:absolute;inset:0;background:radial-gradient(60% 90% at 50% 120%,rgba(216,80,58,.22),transparent 70%);pointer-events:none}
@@ -219,7 +228,7 @@ footer{text-align:center;color:var(--mut);font-style:italic;font-size:14px;paddi
       <div class="b"><div class="l">USDG · collateral</div><div class="v" id="b-usdg">—</div></div>
       <div class="b"><div class="l">STYX · share</div><div class="v" id="b-styx">—</div></div>
       <div class="b"><div class="l">sUSD · public</div><div class="v" id="b-susd">—</div></div>
-      <div class="b priv"><div class="l">sUSD · unseen</div><div class="v"><span id="b-priv-red" class="redact">██████</span><span id="b-priv-val" style="display:none"></span><span class="reveal" id="b-priv-eye">reveal</span></div></div>
+      <div class="b priv"><div class="l">sUSD · unseen</div><div class="v"><span id="b-priv-red" class="redact">██████</span><span id="b-priv-val" style="display:none"></span><span class="reveal" id="b-priv-eye">reveal</span><span class="reveal" id="b-seal" title="generate a read-only view key">seal</span></div></div>
     </div>
     <div class="tabs">
       <button data-tab="deposit">Deposit</button><button class="on" data-tab="mint">Mint</button><button data-tab="shield">Shield</button><button data-tab="send">Send Unseen</button><button data-tab="vigil">The Vigil</button><button data-tab="redeem">Redeem</button>
@@ -235,6 +244,13 @@ footer{text-align:center;color:var(--mut);font-style:italic;font-size:14px;paddi
     <div class="stat"><div class="l">in reserve</div><div class="v" id="s-col">—</div></div>
     <div class="stat"><div class="l">sUSD struck</div><div class="v" id="s-sup">—</div></div>
     <div class="stat"><div class="l">carried unseen</div><div class="v" id="s-shd">—</div></div>
+  </div>
+
+  <!-- RITE III -->
+  <div class="sec" id="rite3"><span>Rite III · the note &amp; the seal<span class="tmp" style="background:var(--gold)">NEW</span></span></div>
+  <div class="rite3">
+    <div class="r3"><div class="k">The Note · pay anyone, no address</div><h3>Send private dollars as a link.</h3><p>Lock shielded sUSD behind a secret. Whoever opens the link claims it into <b>their own</b> shielded balance. No recipient is ever named, on the ledger it is one nullifier and one commitment, same as any private send. <b>Text it. DM it. Print it as a QR.</b></p></div>
+    <div class="r3"><div class="k">The Seal · selective disclosure</div><h3>Prove it to one person. Hide it from everyone else.</h3><p>Generate a <b>view key</b> for your wallet. Whoever holds it can read your shielded balance and history on a sealed statement page. It <b>can never spend</b>. Give it to an accountant, a partner, a regulator — and to nobody else.</p></div>
   </div>
 
   <!-- THE VIGIL -->
@@ -267,6 +283,7 @@ footer{text-align:center;color:var(--mut);font-style:italic;font-size:14px;paddi
   <div class="sec" id="road"><span>The rites of passage · roadmap</span></div>
   <div class="road">
     <div class="ph now"><div class="no">RITE I</div><div><div class="t">The ledger &amp; $STYX</div><div class="d">Real privacy primitives (commitments, nullifiers, encrypted notes) with the peg &amp; ledger kept off-chain. $STYX launches as the community/gov token.</div></div><span class="st">You are here</span></div>
+    <div class="ph now"><div class="no">RITE III</div><div><div class="t">The Note &amp; the Seal</div><div class="d">Pay-by-link private transfers and read-only view keys for selective disclosure. Shipped.</div></div><span class="st">Live</span></div>
     <div class="ph"><div class="no">RITE II</div><div><div class="t">On-chain sUSD (Robinhood Chain)</div><div class="d">Solidity contracts on Robinhood Chain: deposit collateral → mint/redeem sUSD, a signed 24/7 oracle, an sUSD pool. A transparent stablecoin on Robinhood Chain.</div></div><span class="st">Next</span></div>
     <div class="ph"><div class="no">RITE III</div><div><div class="t">Peg automation</div><div class="d">Algorithmic collateral-ratio control + keeper bots holding the $1 peg via arbitrage.</div></div><span class="st">Planned</span></div>
     <div class="ph"><div class="no">RITE IV</div><div><div class="t">ZK privacy</div><div class="d">Trustless shielded transfers via on-chain zero-knowledge proofs (Light Protocol). The coin truly disappears.</div></div><span class="st">Planned</span></div>
@@ -291,6 +308,8 @@ footer{text-align:center;color:var(--mut);font-style:italic;font-size:14px;paddi
     <details><summary>What can an observer see when I send unseen?</summary><div class="a">A <b>nullifier</b> spent and a <b>new commitment</b> added. No amount, no sender, no recipient. The recipient decrypts their note with their key; nobody else can.</div></details>
     <details><summary>Can I get back to public sUSD?</summary><div class="a">Yes. Unshield returns a private note to your public balance at any time, and Redeem burns public sUSD for your USDG collateral plus the $STYX share. <i>Private when you choose, public when you choose.</i></div></details>
     <details><summary>What is $STYX for?</summary><div class="a">$STYX is the share token of the protocol. A small amount is <b>burned on every mint</b> and minted back on every redeem, so demand for sUSD flows into $STYX. It is also the governance token for the rites ahead.</div></details>
+    <details><summary>What is a Note?</summary><div class="a">A pay link. You lock shielded sUSD behind a random secret and share the link. Whoever opens it connects a wallet and the sUSD lands in <b>their</b> shielded balance. The secret is only in the link fragment; the server stores a hash of it, and the ledger shows one nullifier and one commitment, indistinguishable from a private send. <i>One claim per note.</i></div></details>
+    <details><summary>What is the Seal?</summary><div class="a">A <b>view key</b>: an HMAC over your address with a server salt, encoded with your address so the statement page can verify it. It reads your shielded balance and history. It has <b>no spending power</b>. This is the selective-disclosure model privacy coins use for audits: you choose who sees, and only they see.</div></details>
     <details><summary>Is my USDG actually deposited?</summary><div class="a">Yes. Minting starts with a real <b>USDG transfer on Robinhood Chain to the treasury</b>. The server reads the transaction receipt, checks the Transfer log is from your wallet to the treasury, and only then credits your ledger. Every deposited dollar sits in the treasury address you can see on the explorer. <i>Nothing on this site is paper any more.</i></div></details>
     <details><summary>How do I get USDG back out?</summary><div class="a">Redeem sUSD for USDG on the ledger, then <b>Withdraw</b>. Withdrawals go into a queue the treasury pays out by hand from a cold wallet, usually within 24 hours, and the payout tx hash is written next to your request. There is deliberately <b>no hot key on the server</b>.</div></details>
     <details><summary>What is The Vigil, and why is it temporary?</summary><div class="a">A 30-day staking window: stake sUSD, earn a fixed APY, paid in <b>$STYX from a pool the treasury set aside in advance</b>. It has a hard end date and a hard pool size. Anchor's 20% was permanent and subsidised, so it became the only reason to hold UST and the peg died with it. A yield that <i>ends</i> can't do that.</div></details>
