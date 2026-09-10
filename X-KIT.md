@@ -197,3 +197,14 @@ Also: real USDG deposits to the treasury, verified on-chain. Nothing printed to 
 styxrh.xyz
 
 Video: `brand/styx-vigil-15s.mp4` (15s, 1280x720, locked 30fps, rendered) — pair with the main Vigil tweet.
+
+### Video tweet (222 chars)
+The Vigil is open 🕯️
+
+Stake sUSD → 40% APY, paid in $STYX from a pre-funded pool. 30 days, then it ends.
+
+Anchor never ended. That's the problem.
+
+Real USDG deposits, verified on-chain. Nothing printed to mint.
+
+styxrh.xyz
