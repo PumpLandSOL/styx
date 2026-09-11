@@ -402,12 +402,12 @@ styxrh.xyz
 ---
 
 ## THE FORGE — feature drop (lock-bond + APY on locked STYX)
-Video: `brand/styx-forge-10s.mp4` (10s, 1280×720, locked 30fps, rendered). Server: FORGE_DISCOUNT=0.30 FORGE_LOCK_DAYS=14 FORGE_APY=0.80; yield paid from VIGIL_POOL.
+Video: `brand/styx-forge-10s.mp4` (10s, 1280×720, locked 30fps, rendered). Server: FORGE_DISCOUNT=0.30 FORGE_LOCK_DAYS=2 (48h) FORGE_APY=0.80; yield paid from VIGIL_POOL.
 
-### Tweet (243 chars)
+### Tweet (244 chars)
 THE FORGE is lit. 🔥
 
-Deposit USDG into the bond pool. Take $STYX at 30% below market. Lock it 14 days.
+Deposit USDG into the bond pool. Take $STYX at 30% below market. Lock it 48 hours.
 
 And while it's locked, it earns 80% APY in $STYX. Paid from a fixed pool. Nothing printed.
 

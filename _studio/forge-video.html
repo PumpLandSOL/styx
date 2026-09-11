@@ -48,13 +48,13 @@ window.__seek = function (t) {
     txt(num(1125000 + 5000 * k) + ' USDG', 270, 400, 26, VERD2, 'Cinzel', 700, 'center', 1); txt('sUSD RESERVE', 270, 440, 16, MUT, 'JetBrains Mono', 500, 'center', 5); g.globalAlpha = 1; }
   if (t >= 5.6 && t < 8.7) { const a = fadeIO(t, 5.6, 8.7, .3); const k = seg(t, 5.9, 8.3);
     ingot(W / 2, 400, 420, 120, .4 + .6 * k, a, 0); lock(W / 2, 290, a, false);
-    g.globalAlpha = a; txt('LOCKED 14 DAYS', W / 2, 240, 22, GOLD2, 'JetBrains Mono', 500, 'center', 8);
+    g.globalAlpha = a; txt('LOCKED 48 HOURS', W / 2, 240, 22, GOLD2, 'JetBrains Mono', 500, 'center', 8);
     g.shadowColor = 'rgba(255,138,61,.8)'; g.shadowBlur = 40; txt(num(80 * k) + '% APY', W / 2, 560, 96, ORANGE, 'Cinzel', 800, 'center', 2); g.shadowBlur = 0;
     txt('on your locked $STYX · paid in $STYX · from a fixed pool, not printed', W / 2, 630, 22, MUT, 'EB Garamond', 400); g.globalAlpha = 1;
     for (const s of SPARKS) { const life = ((t * .9 + s.hot) % 1); const r = s.v * life * .25; coin(W / 2 + Math.cos(s.a) * r, 400 - Math.abs(Math.sin(s.a)) * r * .8 - life * 60, a * (1 - life) * k, s.sz, s.hot > .5 ? ORANGE : GOLD2); } }
   if (t >= 8.6) { const cr = seg(t, 8.6, 9.1);
     if (t < 9.5) { const fa = 1 - seg(t, 9.1, 9.5); ingot(W / 2, 400, 420, 120, 1, fa, cr); lock(W / 2, 290, fa, true); g.globalAlpha = fa; txt('UNLOCK · principal + yield', W / 2, 560, 30, GOLD2, 'Cinzel', 800, 'center', 4); g.globalAlpha = 1; }
-    const b = seg(t, 9.25, 9.65); g.globalAlpha = b; txt('STYX', W / 2, H / 2 - 30, 96, GOLD, 'Cinzel', 800, 'center', 22); txt('styxrh.xyz/?tab=bond', W / 2, H / 2 + 60, 30, GOLD2, 'JetBrains Mono', 500, 'center', 2); txt('the forge is lit · −30% · 14d lock · 80% APY', W / 2, H / 2 + 110, 20, MUT, 'JetBrains Mono', 500, 'center', 3); g.globalAlpha = 1; }
+    const b = seg(t, 9.25, 9.65); g.globalAlpha = b; txt('STYX', W / 2, H / 2 - 30, 96, GOLD, 'Cinzel', 800, 'center', 22); txt('styxrh.xyz/?tab=bond', W / 2, H / 2 + 60, 30, GOLD2, 'JetBrains Mono', 500, 'center', 2); txt('the forge is lit · −30% · 48h lock · 80% APY', W / 2, H / 2 + 110, 20, MUT, 'JetBrains Mono', 500, 'center', 3); g.globalAlpha = 1; }
   return true;
 };
 window.__ready = document.fonts.ready.then(() => { __seek(0); return true; });

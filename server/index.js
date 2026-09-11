@@ -141,8 +141,8 @@ const BOND = {
   vestMs: +(process.env.BOND_VEST_DAYS || 5) * 864e5,      // linear vest
   capUsd: +(process.env.BOND_CAP_USD || 5000),             // per-day capacity
   end: +(process.env.BOND_END || 1791676800000),  // same close as the vigil
-  // THE FORGE: lock the bond. Deeper discount, hard 14-day lock, and the locked STYX earns APY in STYX paid from the Vigil pool (fixed, no printing).
-  lockDiscount: +(process.env.FORGE_DISCOUNT || 0.30), lockMs: +(process.env.FORGE_LOCK_DAYS || 14) * 864e5, lockApy: +(process.env.FORGE_APY || 0.80),
+  // THE FORGE: lock the bond. Deeper discount, hard 48-hour lock, and the locked STYX earns APY in STYX paid from the Vigil pool (fixed, no printing).
+  lockDiscount: +(process.env.FORGE_DISCOUNT || 0.30), lockMs: +(process.env.FORGE_LOCK_DAYS || 2) * 864e5, lockApy: +(process.env.FORGE_APY || 0.80),
   min: 50,
 };
 if (!db.bonds) db.bonds = { soldUsd: 0, soldStyx: 0, n: 0, day: 0, dayUsd: 0 };
