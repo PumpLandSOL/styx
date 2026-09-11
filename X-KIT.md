@@ -350,3 +350,23 @@ Not anymore. Commit shielded sUSD to HOOD, TSLA, NVDA, SPY. Long or short, off t
 The first private stock desk on Robinhood Chain.
 
 styxrh.xyz/?tab=dark
+
+---
+
+## DAY ONE COMPLETE — feature checklist (212 chars)
+Graphic: `brand/styx-day-one.png` (2400×1350)
+
+Day one complete ⚱
+
+✅ sUSD mint/redeem
+✅ Shielded pool
+✅ Notes + Seal
+✅ USDG treasury
+✅ The Vigil (staking)
+✅ The Pyre (burn)
+✅ Bonds
+✅ Referrals
+✅ Dark Pool
+
+styxrh.xyz
+0xdbd2bd1a734d2b3dc8f88bacc404810fcbff36c4
