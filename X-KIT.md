@@ -370,3 +370,20 @@ Day one complete ⚱
 
 styxrh.xyz
 0xdbd2bd1a734d2b3dc8f88bacc404810fcbff36c4
+
+---
+
+## vs LUNA + ZEC — v2 (post day one, market caps)
+Graphic: `brand/styx-vs-luna-zec-v2.png` (2400×2300). Caps: LUNA ATH $40B (Apr 2022), ZEC ATH $19.85B, $STYX day-one ATH $500K.
+1% of LUNA ATH = $400M (800×). 1% of ZEC ATH = $199M (397×).
+
+### Tweet (279 chars)
+UST hit $40B with no privacy and no backing. $0 in six days.
+ZEC hit $19.85B with privacy and no dollar. Ten years, still can't price rent in it.
+
+$STYX hit $500K on day one with both, plus a 55% USDG floor, staking, bonds, referrals and a dark pool for stocks.
+
+1% of LUNA = $400M
+1% of ZEC = $199M
+
+styxrh.xyz

@@ -1,0 +1,90 @@
+<!doctype html><html><head><meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=EB+Garamond:ital@0;1&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#e9ddc6;--dim:#a58f6a;--mut:#6a5942;--gold:#c9a25e;--gold2:#e9cf95;--verd:#62a187;--verd2:#8fd1b4;--red:#d8503a;--dead:#7a6d5c;--line:rgba(201,162,94,.18);--line2:rgba(201,162,94,.34)}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{font-family:'EB Garamond',serif;color:var(--ink);background:#080706;overflow:hidden}
+.ci{font-family:'Cinzel',serif}.mo{font-family:'JetBrains Mono',monospace}
+.stage{position:relative;width:2400px;height:1720px;overflow:hidden;background:
+  radial-gradient(120% 60% at 50% -8%,rgba(201,162,94,.08),transparent 55%),
+  radial-gradient(50% 50% at 84% 110%,rgba(98,161,135,.08),transparent 60%),#080706}
+.grain{position:absolute;inset:0;opacity:.05;background-image:radial-gradient(rgba(233,221,198,.5) .5px,transparent .6px);background-size:3px 3px}
+.wrap{position:absolute;inset:0;padding:76px 120px 0}
+.eye{font-size:26px;letter-spacing:.34em;color:var(--gold);text-transform:uppercase;text-align:center}
+.title{font-size:78px;font-weight:800;text-align:center;margin:18px 0 8px}
+.title em{font-style:normal;color:var(--gold)}
+.sub{font-size:30px;font-style:italic;color:var(--dim);text-align:center;margin-bottom:44px}
+table{width:100%;border-collapse:collapse;table-layout:fixed}
+col.attr{width:22%}
+th{padding:22px 26px;text-align:center;vertical-align:bottom}
+.h{font-family:'Cinzel';font-weight:800;font-size:42px;letter-spacing:.04em}
+.h.l{color:var(--dead)}.h.z{color:#b8a978}.h.r{color:var(--gold)}
+th small{display:block;font-family:'JetBrains Mono';font-weight:400;font-size:19px;letter-spacing:.1em;margin-top:8px;text-transform:uppercase;color:var(--mut)}
+td{padding:19px 26px;border-top:1px solid var(--line);vertical-align:middle;text-align:center;font-size:27px;line-height:1.3}
+td.attr{font-family:'Cinzel';font-weight:600;font-size:25px;letter-spacing:.08em;color:var(--ink);text-transform:uppercase;text-align:left}
+td.attr small{display:block;font-family:'EB Garamond';font-style:italic;font-size:20px;color:var(--mut);text-transform:none;letter-spacing:0;margin-top:3px}
+.no{color:var(--red)}.yes{color:var(--verd2)}.meh{color:#b8a978}.dd{color:var(--dead)}
+.colR{background:linear-gradient(180deg,rgba(201,162,94,.07),rgba(201,162,94,.02));border-left:1px solid var(--line2);border-right:1px solid var(--line2)}
+.redact{display:inline-block;background:#0d0a06;box-shadow:inset 0 0 0 1px rgba(201,162,94,.3);border-radius:2px;width:110px;height:26px;vertical-align:middle}
+.out td{border-top:2px solid var(--line2);padding:26px}
+.oL{font-family:'Cinzel';font-weight:700;font-size:40px;color:var(--red)}.oZ{font-family:'Cinzel';font-weight:700;font-size:40px;color:#b8a978}.oR{font-family:'Cinzel';font-weight:800;font-size:40px;color:var(--gold2);text-shadow:0 0 26px rgba(201,162,94,.4)}
+.out small{display:block;font-family:'EB Garamond';font-style:italic;font-weight:400;font-size:22px;color:var(--mut);margin-top:6px}
+.strip{margin-top:38px;display:grid;grid-template-columns:repeat(3,1fr);gap:28px}
+.s{border:1px solid var(--line);padding:22px 28px;background:rgba(255,255,255,.012)}
+.s .k{font-family:'JetBrains Mono';font-size:17px;letter-spacing:.18em;color:var(--verd);text-transform:uppercase}
+.s .t{font-family:'Cinzel';font-weight:700;font-size:25px;color:var(--ink);margin:8px 0 6px}
+.s .d{font-size:22px;line-height:1.35;color:var(--dim)}
+.foot{position:absolute;left:0;right:0;bottom:40px;text-align:center;font-family:'JetBrains Mono';font-size:22px;color:var(--mut);letter-spacing:.08em}
+.foot b{color:var(--gold)}
+</style></head>
+<style>
+.stage{height:2300px}
+.caps{margin-top:34px;display:grid;grid-template-columns:1fr 1fr 1.25fr;gap:28px}
+.cap{border:1px solid var(--line);padding:26px 32px;background:rgba(255,255,255,.012)}
+.cap .k{font-family:'JetBrains Mono';font-size:18px;letter-spacing:.2em;color:var(--mut);text-transform:uppercase}
+.cap .n{font-family:'Cinzel';font-weight:800;font-size:56px;margin:8px 0 4px;letter-spacing:.02em}
+.cap .n.l{color:var(--red)}.cap .n.z{color:var(--dim)}.cap .n.r{color:var(--verd)}
+.cap .d{font-size:22px;color:var(--dim);line-height:1.3}.cap .d b{color:var(--ink);font-weight:400}
+.cap.r{border-color:rgba(98,161,135,.45);background:linear-gradient(180deg,rgba(98,161,135,.08),rgba(98,161,135,.02))}
+.math{margin-top:22px;display:grid;grid-template-columns:1fr 1fr;gap:28px}
+.m{border:1px solid var(--line2);padding:22px 32px;display:flex;justify-content:space-between;align-items:center;background:rgba(201,162,94,.04)}
+.m .a{font-size:24px;color:var(--dim)}.m .a b{color:var(--ink);font-weight:400}
+.m .b{font-family:'Cinzel';font-weight:800;font-size:46px;color:var(--gold2)}
+.m .b small{font-family:'JetBrains Mono';font-weight:400;font-size:20px;color:var(--verd);margin-left:14px;letter-spacing:.06em}
+</style></head>
+<body><div class="stage"><div class="grain"></div>
+  <div class="wrap">
+    <div class="eye ci">Updated &middot; day one shipped &middot; the comparison, again</div>
+    <div class="title ci">Everything they have. <em>Plus a floor.</em></div>
+    <div class="sub">UST was a dollar with no privacy and no backing. Zcash is privacy with no dollar. sUSD is both, and after day one it does more than either.</div>
+
+    <table>
+      <colgroup><col class="attr"><col><col><col></colgroup>
+      <tr><th></th><th class="h l">UST / LUNA<small>Terra &middot; 2022</small></th><th class="h z">ZEC<small>Zcash &middot; 2016</small></th><th class="h r colR">sUSD / $STYX<small>Robinhood Chain &middot; 2026</small></th></tr>
+      <tr><td class="attr">Is it a dollar?<small>pegged unit of account</small></td><td class="dd">yes &middot; <span class="no">until it wasn&rsquo;t</span></td><td class="no">no &middot; volatile coin</td><td class="yes colR">yes &middot; sUSD pegged to $1</td></tr>
+      <tr><td class="attr">Private?<small>amount &amp; parties hidden</small></td><td class="no">no &middot; fully public</td><td class="yes">yes &middot; shielded (zk-SNARK)</td><td class="yes colR">yes &middot; shielded notes, nullifiers, commitments</td></tr>
+      <tr><td class="attr">Backing<small>what stands behind a unit</small></td><td class="no">LUNA it printed itself</td><td class="meh">none &middot; it&rsquo;s the asset</td><td class="yes colR">real USDG on-chain &middot; <b>55% floor &rarr; 100%</b></td></tr>
+      <tr><td class="attr">If the share token &rarr; $0<small>what a unit is worth</small></td><td class="no">$0.00</td><td class="meh">n/a &middot; ZEC is the token</td><td class="yes colR">&ge; $0.55 in hard USDG</td></tr>
+      <tr><td class="attr">Selective disclosure<small>show one, hide the rest</small></td><td class="no">nothing to disclose</td><td class="yes">viewing keys</td><td class="yes colR">view keys &middot; The Seal</td></tr>
+      <tr><td class="attr">Pay anyone by link<small>no address needed</small></td><td class="no">no</td><td class="no">no</td><td class="yes colR">yes &middot; The Note</td></tr>
+      <tr><td class="attr">Usage feeds the token<small>value capture</small></td><td class="no">yield subsidy drained it</td><td class="meh">tx fees</td><td class="yes colR">every crossing buys &amp; burns $STYX &middot; The Pyre</td></tr>
+      <tr><td class="attr">Staking<small>how yield is paid</small></td><td class="no">20% Anchor &middot; printed, unbacked</td><td class="no">none</td><td class="yes colR">The Vigil &middot; fixed pool, 30 days, capped &middot; not printed</td></tr>
+      <tr><td class="attr">Grows the reserve<small>bonds</small></td><td class="no">bought BTC with printed LUNA</td><td class="no">none</td><td class="yes colR">Bonds &middot; USDG in, vested STYX out</td></tr>
+      <tr><td class="attr">Private stock exposure<small>tokenized equities</small></td><td class="no">no</td><td class="no">no</td><td class="yes colR">The Dark Pool &middot; shielded 1x off the live tape</td></tr>
+      <tr><td class="attr">Referrals<small>growth paid from usage</small></td><td class="no">no</td><td class="no">no</td><td class="yes colR">Charon&rsquo;s Cut &middot; 20% of every toll, forever</td></tr>
+      <tr class="out"><td class="attr">Where it stands</td><td class="oL">$40B &rarr; $0<small>six days, May 2022</small></td><td class="oZ">privacy, no dollar<small>10 years, still not money you price in</small></td><td class="oR colR">private dollar, 10 features<small>Robinhood Chain &middot; day one</small></td></tr>
+    </table>
+
+    <div class="caps">
+      <div class="cap"><div class="k">LUNA &middot; ATH market cap</div><div class="n ci l">$40B</div><div class="d">April 2022. <b>$0</b> by May.</div></div>
+      <div class="cap"><div class="k">ZEC &middot; ATH market cap</div><div class="n ci z">$19.85B</div><div class="d">Ten years old. <b>Still not a dollar.</b></div></div>
+      <div class="cap r"><div class="k">$STYX &middot; day one ATH market cap</div><div class="n ci r">$500K</div><div class="d">24 hours old. <b>Already a dollar, already private, floor already set.</b></div></div>
+    </div>
+    <div class="math">
+      <div class="m"><div class="a">At <b>1% of LUNA&rsquo;s ATH</b>, $STYX is</div><div class="b ci">$400M<small>800&times; from day-one ATH</small></div></div>
+      <div class="m"><div class="a">At <b>1% of ZEC&rsquo;s ATH</b>, $STYX is</div><div class="b ci">$199M<small>397&times; from day-one ATH</small></div></div>
+    </div>
+  </div>
+  <div class="foot mo">&#9899; <b>styxrh.xyz</b> &nbsp;&middot;&nbsp; $STYX &nbsp;&middot;&nbsp; a dollar you carry unseen &nbsp;&middot;&nbsp; defended, not guaranteed. not a price target.</div>
+</div></body></html>
