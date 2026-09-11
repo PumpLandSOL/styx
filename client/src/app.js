@@ -54,7 +54,7 @@ function renderMetrics() {
     $('dk-open').textContent = fmt(D.open, 0); $('dk-vol').textContent = '$' + big(D.volume); $('dk-fees').textContent = '$' + fmt(D.fees, 2);
   }
   if (M.bonds) { const Bd = M.bonds;
-    $('bd-price').textContent = '$' + fmt(Bd.price, 6); $('bd-market').textContent = '$' + fmt(Bd.market, 6); $('bd-left').textContent = '$' + fmt(Bd.leftToday, 0) + ' / $' + fmt(Bd.capUsd, 0); $('bd-sold').textContent = '$' + fmt(Bd.soldUsd, 0) + ' · ' + big(Bd.soldStyx) + ' STYX';
+    $('bd-price').textContent = '$' + fmt(Bd.price, 6); $('bd-market').textContent = '$' + fmt(Bd.market, 6); $('bd-left').textContent = '$' + fmt(Bd.leftToday, 0) + ' / $' + fmt(Bd.capUsd, 0); $('bd-sold').textContent = '$' + fmt(Bd.soldUsd, 0) + ' · ' + big(Bd.soldStyx) + ' STYX'; if (Bd.forge) { $('fg-price').textContent = '$' + fmt(Bd.forge.price, 6) + ' (−' + fmt(Bd.forge.discount * 100, 0) + '%)'; $('fg-locked').textContent = big(Bd.forge.lockedStyx) + ' STYX · ' + Bd.forge.n + ' forged'; }
   }
   if (M.vigil) { const V = M.vigil;
     $('v-apy').textContent = fmt(V.apy * 100, 0) + '%'; $('v-boost').textContent = V.boost && V.boost.live ? '⚡ boosted from ' + fmt(V.baseApy * 100, 0) + '% · ' + dur(V.boost.endsIn) + ' left' : ''; $('v-staked').textContent = big(V.staked) + ' / ' + big(V.cap);
@@ -127,18 +127,24 @@ function renderPanel() {
     p.querySelectorAll('[data-close]').forEach((b) => b.onclick = () => doAct('/api/dark/close', { id: b.dataset.close, amount: 1 }, (r) => `closed · ${r.closed.pnl >= 0 ? '+' : ''}${fmt(r.closed.pnl, 2)} sUSD`));
   } else if (tab === 'bond') {
     const Bd = M && M.bonds, me = A && A.bonds;
+    const F = Bd && Bd.forge; if (typeof window.__lock === 'undefined') window.__lock = true; const L = window.__lock;
     p.innerHTML = `<div class="note"><b>Bond USDG for $STYX at ${Bd ? fmt(Bd.discount * 100, 0) : 20}% below market.</b> Vests over ${Bd ? Bd.vestDays : 5} days. Your USDG goes to the reserve and mints nothing. ${Bd && !Bd.open ? '<b>Bonds are closed.</b>' : ''}</div>
+      <div style="display:flex;gap:8px;margin:0 0 12px"><button class="btn ${L ? 'fill' : 'ghost'}" id="lk1" style="flex:1.3">🔥 THE FORGE · lock ${F ? F.lockDays : 14}d · −${F ? fmt(F.discount * 100, 0) : 30}% · ${F ? fmt(F.apy * 100, 0) : 80}% APY</button><button class="btn ${L ? 'ghost' : 'fill'}" id="lk0" style="flex:1">Plain bond · −${Bd ? fmt(Bd.discount * 100, 0) : 20}% · ${Bd ? Bd.vestDays : 5}d vest</button></div>
+      ${L ? `<div class="note" style="border-color:var(--gold)"><b>The Forge:</b> your USDG enters the bond pool, you take $STYX at <b>${F ? fmt(F.discount * 100, 0) : 30}% below market</b>, locked <b>${F ? F.lockDays : 14} days</b>. While locked it earns <b>${F ? fmt(F.apy * 100, 0) : 80}% APY in $STYX</b>, paid from the Vigil's fixed pool. Nothing printed. Claim principal + yield at unlock.</div>` : ''}
       <div class="field"><input id="in" type="number" placeholder="50.00 minimum" min="50"><span class="u">USDG</span><span class="mx" id="mx">MAX</span></div>
       <div class="kv"><span>USDG on ledger</span><b>${A ? fmt(A.usdg, 2) : '—'}</b></div>
-      <div class="kv"><span>bond price · market</span><b>${Bd ? '$' + fmt(Bd.price, 6) + ' · $' + fmt(Bd.market, 6) : '—'}</b></div>
+      <div class="kv"><span>${L ? 'forge' : 'bond'} price · market</span><b>${Bd ? '$' + fmt(L && F ? F.price : Bd.price, 6) + ' · $' + fmt(Bd.market, 6) : '—'}</b></div>
       <div class="kv"><span>you receive</span><b id="o1">—</b></div>
+      ${L ? '<div class="kv"><span>yield at unlock</span><b id="o2">—</b></div>' : ''}
       <div class="kv"><span>vesting · claimable now</span><b>${me ? big(me.pending) + ' · ' + big(me.claimable) + ' STYX' : '—'}</b></div>
-      <div style="display:flex;gap:10px;margin-top:14px"><button class="btn fill" id="act" style="flex:1.4">Bond USDG</button><button class="btn ghost" id="act2" style="flex:1">Claim vested</button><button class="btn ghost" id="act3" style="flex:1">Withdraw STYX</button></div>
+      ${me && me.locked ? `<div class="kv"><span>in the forge · yield forging</span><b style="color:var(--gold2)">${big(me.locked)} · +${big(me.forging)} STYX</b></div>` : ''}
+      <div style="display:flex;gap:10px;margin-top:14px"><button class="btn fill" id="act" style="flex:1.4">${L ? '🔥 Forge STYX' : 'Bond USDG'}</button><button class="btn ghost" id="act2" style="flex:1">Claim vested</button><button class="btn ghost" id="act3" style="flex:1">Withdraw STYX</button></div>
       <div class="note" style="margin-top:12px;margin-bottom:0">No USDG yet? <a href="#" id="go-dep" style="color:var(--gold)">Deposit first →</a></div>`;
     $('mx').onclick = () => { if (A) $('in').value = A.usdg; };
-    $('in').oninput = () => { const x = +$('in').value || 0; $('o1').textContent = Bd ? big(x / Bd.price) + ' STYX (' + big(x / Bd.market) + ' at market)' : '—'; };
-    $('act').onclick = () => doAct('/api/bond', { amount: +$('in').value }, (r) => `bonded ${fmt(r.bonded, 2)} USDG → ${big(r.styxOut)} STYX vesting`);
-    $('act2').onclick = () => doAct('/api/bond/claim', { amount: 1 }, (r) => `claimed ${big(r.claimedStyx)} STYX`);
+    $('in').oninput = () => { const x = +$('in').value || 0; const px = L && F ? F.price : (Bd && Bd.price); $('o1').textContent = Bd ? big(x / px) + ' STYX (' + big(x / Bd.market) + ' at market)' : '—'; if (L && F && $('o2')) $('o2').textContent = '+' + big(x / px * F.apy * F.lockDays / 365) + ' STYX (' + fmt(F.apy * 100, 0) + '% APY × ' + F.lockDays + 'd)'; };
+    $('lk1').onclick = () => { window.__lock = true; renderPanel(); }; $('lk0').onclick = () => { window.__lock = false; renderPanel(); };
+    $('act').onclick = () => doAct('/api/bond', { amount: +$('in').value, lock: L }, (r) => r.lock ? `forged ${fmt(r.bonded, 2)} USDG → ${big(r.styxOut)} STYX locked ${F.lockDays}d at ${fmt(r.apy * 100, 0)}% APY` : `bonded ${fmt(r.bonded, 2)} USDG → ${big(r.styxOut)} STYX vesting`);
+    $('act2').onclick = () => doAct('/api/bond/claim', { amount: 1 }, (r) => `claimed ${big(r.claimedStyx)} STYX${r.forgedStyx > 0 ? ' (incl. ' + big(r.forgedStyx) + ' forged yield)' : ''}`);
     $('act3').onclick = () => doAct('/api/withdraw', { asset: 'STYX', amount: A ? A.styx : 0 }, (r) => `queued ${big(r.queued.amt)} STYX for payout`);
     $('go-dep').onclick = (e) => { e.preventDefault(); tab = 'deposit'; document.querySelectorAll('.tabs button').forEach((x) => x.classList.toggle('on', x.dataset.tab === 'deposit')); renderPanel(); };
   } else if (tab === 'deposit') {

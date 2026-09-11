@@ -398,3 +398,19 @@ $STYX day one: $500K. Private dollar, 55% USDG floor, Vigil staking, Bonds, Dark
 1% of ZEC = $199M
 
 styxrh.xyz
+
+---
+
+## THE FORGE — feature drop (lock-bond + APY on locked STYX)
+Video: `brand/styx-forge-10s.mp4` (10s, 1280×720, locked 30fps, rendered). Server: FORGE_DISCOUNT=0.30 FORGE_LOCK_DAYS=14 FORGE_APY=0.80; yield paid from VIGIL_POOL.
+
+### Tweet (243 chars)
+THE FORGE is lit. 🔥
+
+Deposit USDG into the bond pool. Take $STYX at 30% below market. Lock it 14 days.
+
+And while it's locked, it earns 80% APY in $STYX. Paid from a fixed pool. Nothing printed.
+
+Bond. Lock. Earn. Unlock.
+
+styxrh.xyz/?tab=bond

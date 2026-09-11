@@ -1,0 +1,61 @@
+<!doctype html><html><head><meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;800&family=EB+Garamond:ital@1&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>html,body{margin:0;background:#080706;overflow:hidden}canvas{display:block}</style>
+</head><body><canvas id="c" width="1280" height="720"></canvas>
+<script>
+// THE FORGE — 10s deterministic hype: USDG poured into a crucible, molten STYX cast into a locked ingot that glows hotter (APY) until it cracks open.
+const W = 1280, H = 720, cv = document.getElementById('c'), g = cv.getContext('2d');
+const GOLD = '#c9a25e', GOLD2 = '#e9cf95', INK = '#e9ddc6', VERD2 = '#8fd1b4', RED = '#d8503a', ORANGE = '#ff8a3d', MUT = '#8f8470';
+function rng(seed) { let s = seed >>> 0; return () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; }; }
+const R = rng(77);
+const EMBERS = Array.from({ length: 220 }, () => ({ x: R(), y: R(), sp: 0.04 + R() * 0.12, sz: 1 + R() * 2.6, ph: R() * 6.28, hot: R() }));
+const DROPS = Array.from({ length: 46 }, (_, i) => ({ t0: 2.4 + i * 0.07, x: 640 + (R() - .5) * 90, sp: 0.9 + R() * .4 }));
+const SPARKS = Array.from({ length: 90 }, () => ({ a: R() * 6.28, v: 120 + R() * 380, sz: 1.5 + R() * 3, hot: R() }));
+const ease = (k) => k < .5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const seg = (t, a, b) => clamp((t - a) / (b - a), 0, 1);
+const fadeIO = (t, a, b, f = .35) => Math.min(seg(t, a, a + f), 1 - seg(t, b - f, b));
+function bg(t, heat) { g.fillStyle = '#080706'; g.fillRect(0, 0, W, H); const gl = g.createRadialGradient(W / 2, H * .62, 20, W / 2, H * .62, 760); gl.addColorStop(0, `rgba(255,120,40,${.06 + .16 * heat})`); gl.addColorStop(.5, `rgba(201,162,94,${.05 + .05 * heat})`); gl.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = gl; g.fillRect(0, 0, W, H); }
+function embers(t, a, heat) { for (const e of EMBERS) { const y = ((e.y - t * e.sp * (1 + heat)) % 1 + 1) % 1; const c = e.hot > .6 ? `rgba(255,138,61,${a * .7})` : `rgba(233,207,149,${a * .55})`; g.fillStyle = c; g.beginPath(); g.arc((e.x + Math.sin(t * 2 + e.ph) * .012) * W, y * H, e.sz, 0, 6.28); g.fill(); } }
+function txt(s, x, y, size, color, font = 'Cinzel', weight = 800, align = 'center', ls = 0) { g.font = `${weight} ${size}px '${font}'`; g.fillStyle = color; g.textAlign = align; g.textBaseline = 'middle'; g.letterSpacing = ls + 'px'; g.fillText(s, x, y); g.letterSpacing = '0px'; }
+function vignette() { const v = g.createRadialGradient(W / 2, H / 2, 300, W / 2, H / 2, 820); v.addColorStop(0, 'rgba(0,0,0,0)'); v.addColorStop(1, 'rgba(0,0,0,.65)'); g.fillStyle = v; g.fillRect(0, 0, W, H); }
+function coin(x, y, a, r = 8, col = VERD2) { g.save(); g.globalAlpha = a; g.shadowColor = col; g.shadowBlur = 14; g.fillStyle = col; g.beginPath(); g.arc(x, y, r, 0, 6.28); g.fill(); g.restore(); }
+function crucible(cx, cy, fill, heat, a) { g.save(); g.globalAlpha = a; g.strokeStyle = GOLD; g.lineWidth = 4; g.shadowColor = `rgba(255,138,61,${.6 * heat})`; g.shadowBlur = 30 * heat + 8;
+  g.beginPath(); g.moveTo(cx - 150, cy - 80); g.lineTo(cx - 110, cy + 90); g.quadraticCurveTo(cx, cy + 130, cx + 110, cy + 90); g.lineTo(cx + 150, cy - 80); g.stroke(); g.shadowBlur = 0;
+  g.save(); g.beginPath(); g.moveTo(cx - 150, cy - 80); g.lineTo(cx - 110, cy + 90); g.quadraticCurveTo(cx, cy + 130, cx + 110, cy + 90); g.lineTo(cx + 150, cy - 80); g.closePath(); g.clip();
+  const top = cy + 110 - 190 * fill; const grd = g.createLinearGradient(0, top, 0, cy + 120); grd.addColorStop(0, ORANGE); grd.addColorStop(.5, RED); grd.addColorStop(1, '#4a1a0e'); g.fillStyle = grd; g.fillRect(cx - 160, top, 320, 240);
+  g.fillStyle = `rgba(255,220,160,${.5 * heat})`; g.beginPath(); g.ellipse(cx, top + 2, 120 * fill + 10, 6, 0, 0, 6.28); g.fill(); g.restore(); g.restore(); }
+function ingot(cx, cy, w, h, heat, a, cracked) { g.save(); g.globalAlpha = a; g.translate(cx, cy); const grd = g.createLinearGradient(-w / 2, 0, w / 2, 0); grd.addColorStop(0, '#7a5a2a'); grd.addColorStop(.5, GOLD2); grd.addColorStop(1, '#7a5a2a'); g.shadowColor = `rgba(255,138,61,${heat})`; g.shadowBlur = 20 + 60 * heat; g.fillStyle = grd;
+  g.beginPath(); g.moveTo(-w / 2, h / 2); g.lineTo(-w / 2 + 22, -h / 2); g.lineTo(w / 2 - 22, -h / 2); g.lineTo(w / 2, h / 2); g.closePath(); g.fill(); g.shadowBlur = 0;
+  g.fillStyle = `rgba(255,120,40,${.55 * heat})`; g.fill();
+  txt('STYX', 0, 2, 40, '#0a0807', 'Cinzel', 800, 'center', 8);
+  if (cracked > 0) { g.strokeStyle = `rgba(255,240,200,${cracked})`; g.lineWidth = 3; g.shadowColor = '#fff'; g.shadowBlur = 24 * cracked; g.beginPath(); g.moveTo(-w * .1, -h / 2); g.lineTo(0, -h * .1); g.lineTo(-w * .05, h * .15); g.lineTo(w * .08, h / 2); g.stroke(); }
+  g.restore(); }
+function lock(cx, cy, a, open) { g.save(); g.globalAlpha = a; g.strokeStyle = GOLD2; g.lineWidth = 5; g.fillStyle = '#0a0807'; g.beginPath(); g.roundRect(cx - 22, cy - 6, 44, 34, 5); g.fill(); g.stroke(); g.beginPath(); g.arc(cx + (open ? 18 : 0), cy - 8, 15, Math.PI, open ? 1.6 * Math.PI : 2 * Math.PI); g.stroke(); g.restore(); }
+function num(n, d = 0) { return n.toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d }); }
+
+window.__seek = function (t) {
+  const heat = t < 2.2 ? .2 : t < 6.2 ? seg(t, 2.2, 6.2) : t < 8.6 ? 1 : 1 - seg(t, 8.6, 9.4);
+  bg(t, heat); embers(t, t < 9 ? .85 : .85 * (1 - seg(t, 9, 10)), heat); vignette();
+  if (t < 2.3) { const a = fadeIO(t, .15, 2.3, .35); g.globalAlpha = a; txt('BOND. LOCK. EARN.', W / 2, H / 2 - 44, 82, INK, 'Cinzel', 800, 'center', 8); txt('$STYX at 30% off — and it pays you while it’s locked.', W / 2, H / 2 + 44, 30, GOLD2, 'EB Garamond', 400); g.globalAlpha = 1; }
+  if (t >= 2.2 && t < 5.7) { const a = fadeIO(t, 2.2, 5.7, .3); const k = seg(t, 2.5, 5.2);
+    g.globalAlpha = a; txt('THE FORGE', W / 2, 92, 66, GOLD2, 'Cinzel', 800, 'center', 14); txt('deposit USDG into the bond pool → take $STYX at 30% below market', W / 2, 150, 24, MUT, 'EB Garamond', 400); g.globalAlpha = 1;
+    crucible(W / 2, 420, .15 + .85 * k, heat, a);
+    for (const d of DROPS) { const kk = seg(t, d.t0, d.t0 + .5 / d.sp); if (kk <= 0 || kk >= 1) continue; coin(d.x, 190 + ease(kk) * 130, a * (1 - kk * .4)); }
+    g.globalAlpha = a; txt('USDG in', W / 2, 200, 18, MUT, 'JetBrains Mono', 500, 'center', 4);
+    txt('−30%', 1010, 380, 96, GOLD2, 'Cinzel', 800, 'center', 2); txt('vs market', 1010, 440, 18, MUT, 'JetBrains Mono', 500, 'center', 3); txt('nothing minted · reserve deepens', 1010, 500, 18, VERD2, 'EB Garamond', 400);
+    txt(num(1125000 + 5000 * k) + ' USDG', 270, 400, 26, VERD2, 'Cinzel', 700, 'center', 1); txt('sUSD RESERVE', 270, 440, 16, MUT, 'JetBrains Mono', 500, 'center', 5); g.globalAlpha = 1; }
+  if (t >= 5.6 && t < 8.7) { const a = fadeIO(t, 5.6, 8.7, .3); const k = seg(t, 5.9, 8.3);
+    ingot(W / 2, 400, 420, 120, .4 + .6 * k, a, 0); lock(W / 2, 290, a, false);
+    g.globalAlpha = a; txt('LOCKED 14 DAYS', W / 2, 240, 22, GOLD2, 'JetBrains Mono', 500, 'center', 8);
+    g.shadowColor = 'rgba(255,138,61,.8)'; g.shadowBlur = 40; txt(num(80 * k) + '% APY', W / 2, 560, 96, ORANGE, 'Cinzel', 800, 'center', 2); g.shadowBlur = 0;
+    txt('on your locked $STYX · paid in $STYX · from a fixed pool, not printed', W / 2, 630, 22, MUT, 'EB Garamond', 400); g.globalAlpha = 1;
+    for (const s of SPARKS) { const life = ((t * .9 + s.hot) % 1); const r = s.v * life * .25; coin(W / 2 + Math.cos(s.a) * r, 400 - Math.abs(Math.sin(s.a)) * r * .8 - life * 60, a * (1 - life) * k, s.sz, s.hot > .5 ? ORANGE : GOLD2); } }
+  if (t >= 8.6) { const cr = seg(t, 8.6, 9.1);
+    if (t < 9.5) { const fa = 1 - seg(t, 9.1, 9.5); ingot(W / 2, 400, 420, 120, 1, fa, cr); lock(W / 2, 290, fa, true); g.globalAlpha = fa; txt('UNLOCK · principal + yield', W / 2, 560, 30, GOLD2, 'Cinzel', 800, 'center', 4); g.globalAlpha = 1; }
+    const b = seg(t, 9.25, 9.65); g.globalAlpha = b; txt('STYX', W / 2, H / 2 - 30, 96, GOLD, 'Cinzel', 800, 'center', 22); txt('styxrh.xyz/?tab=bond', W / 2, H / 2 + 60, 30, GOLD2, 'JetBrains Mono', 500, 'center', 2); txt('the forge is lit · −30% · 14d lock · 80% APY', W / 2, H / 2 + 110, 20, MUT, 'JetBrains Mono', 500, 'center', 3); g.globalAlpha = 1; }
+  return true;
+};
+window.__ready = document.fonts.ready.then(() => { __seek(0); return true; });
+</script></body></html>
