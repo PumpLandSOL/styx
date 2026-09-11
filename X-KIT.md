@@ -387,3 +387,14 @@ $STYX hit $500K on day one with both, plus a 55% USDG floor, staking, bonds, ref
 1% of ZEC = $199M
 
 styxrh.xyz
+
+### Tweet v2 (short, 233 chars)
+LUNA: $40B, no floor, dead in 6 days.
+ZEC: $19.85B, private, never a dollar.
+
+$STYX day one: $500K. Private dollar, 55% USDG floor, Vigil staking, Bonds, Dark Pool stocks, Pyre burns.
+
+1% of LUNA = $400M
+1% of ZEC = $199M
+
+styxrh.xyz
